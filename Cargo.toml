@@ -1,0 +1,16 @@
+[package]
+name = "minigame"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "minigame"
+path = "src/lib.rs"
+
+[[bin]]
+name = "minigame"
+path = "src/main.rs"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", features = ["dynamic"] }
+rand = "*"
