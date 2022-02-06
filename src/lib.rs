@@ -14,7 +14,7 @@ const WINDOW_WIDTH: f32 = 500.0;
 struct Player;
 
 #[derive(Component)]
-struct Bullet;
+struct PlayerBullet;
 
 #[derive(Component)]
 enum Collider {
@@ -39,7 +39,7 @@ impl Plugin for MiniGamePlugin {
 			.add_startup_system(setup)
 			.add_system(move_player_by_keyboard_system)
 			.add_system(shot_bullet_by_keyboard_system)
-			.add_system(repeat_shot_by_timer)
+			.add_system(repeat_shot_by_timer_system)
 			.add_system(move_bullet_system);
 	}
 }
@@ -118,36 +118,20 @@ fn shot_bullet_by_keyboard_system(
 	query: Query<(&Player, &Transform)>,
 ) {
 	if keyboard_input.just_pressed(KeyCode::Space) {
-		commands.insert_resource(ShotBulletTimer(Timer::new(
-			std::time::Duration::from_millis(400),
-			true,
-		)));
+		start_repeat_player_bullet_shot_timer(&mut commands);
 	} else if keyboard_input.just_released(KeyCode::Space) {
-		commands.remove_resource::<ShotBulletTimer>();
+		stop_repeat_player_bullet_shot_timer(&mut commands);
 		return;
 	} else {
 		return;
 	}
 
 	let (_, transform) = query.single();
-	commands
-		.spawn_bundle(SpriteBundle {
-			transform: Transform {
-				translation: Vec3::new(transform.translation.x, transform.translation.y, 0.0),
-				scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
-				..Default::default()
-			},
-			sprite: Sprite {
-				color: Color::rgb(1.0, 1.0, 0.5),
-				..Default::default()
-			},
-			..Default::default()
-		})
-		.insert(Bullet);
+	shot_player_bullet(commands, transform);
 }
 
-fn repeat_shot_by_timer(
-	mut commands: Commands,
+fn repeat_shot_by_timer_system(
+	commands: Commands,
 	time: Res<Time>,
 	mut timer: Option<ResMut<ShotBulletTimer>>,
 	player_query: Query<(&Player, &Transform)>,
@@ -158,24 +142,43 @@ fn repeat_shot_by_timer(
 		}
 
 		let (_, transform) = player_query.single();
-		commands
-			.spawn_bundle(SpriteBundle {
-				transform: Transform {
-					translation: Vec3::new(transform.translation.x, transform.translation.y, 0.0),
-					scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
-					..Default::default()
-				},
-				sprite: Sprite {
-					color: Color::rgb(1.0, 1.0, 0.5),
-					..Default::default()
-				},
-				..Default::default()
-			})
-			.insert(Bullet);
+		shot_player_bullet(commands, transform);
 	}
 }
 
-fn move_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
+fn start_repeat_player_bullet_shot_timer(commands: &mut Commands) {
+	commands.insert_resource(ShotBulletTimer(Timer::new(
+		std::time::Duration::from_millis(400),
+		true,
+	)));
+}
+
+fn stop_repeat_player_bullet_shot_timer(commands: &mut Commands) {
+	commands.remove_resource::<ShotBulletTimer>();
+}
+
+fn shot_player_bullet(mut commands: Commands, player_transform: &Transform) {
+	commands
+		.spawn_bundle(SpriteBundle {
+			transform: Transform {
+				translation: Vec3::new(
+					player_transform.translation.x,
+					player_transform.translation.y,
+					0.0,
+				),
+				scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
+				..Default::default()
+			},
+			sprite: Sprite {
+				color: Color::rgb(1.0, 1.0, 0.5),
+				..Default::default()
+			},
+			..Default::default()
+		})
+		.insert(PlayerBullet);
+}
+
+fn move_bullet_system(mut query: Query<(&PlayerBullet, &mut Transform)>) {
 	for (_, mut transform) in query.iter_mut() {
 		transform.translation.y += 10.0;
 	}
