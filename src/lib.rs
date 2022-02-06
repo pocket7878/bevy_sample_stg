@@ -54,10 +54,22 @@ impl Plugin for MiniGamePlugin {
 	}
 }
 
-fn setup(mut commands: Commands) {
+fn setup(
+	mut commands: Commands,
+	asset_server: Res<AssetServer>,
+) {
 	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 	commands.spawn_bundle(UiCameraBundle::default());
 
+	// Load assets
+	let rocket_asset_handle: Handle<Image> = asset_server.load("images/rocket.png");
+	let alien_handles: Vec<Handle<Image>> = vec![
+		asset_server.load("images/blue_alien.png"),
+		asset_server.load("images/pink_alien.png"),
+		asset_server.load("images/purple_alien.png"),
+		asset_server.load("images/yellow_alien.png"),
+	];
+	
 	// Player
 	commands
 		.spawn_bundle(SpriteBundle {
@@ -71,9 +83,10 @@ fn setup(mut commands: Commands) {
 				..Default::default()
 			},
 			sprite: Sprite {
-				color: Color::rgb(1.0, 0.5, 0.5),
+				custom_size: Some(Vec2::new(1.0, 1.0)),
 				..Default::default()
 			},
+			texture: rocket_asset_handle.into(),
 			..Default::default()
 		})
 		.insert(Player);
@@ -86,7 +99,6 @@ fn setup(mut commands: Commands) {
 	let enemies_width = enemy_columns as f32 * (enemy_size.x + enemy_spacing) - enemy_spacing;
 	// center the bricks and move them up a bit
 	let enemies_offset = Vec3::new(-(enemies_width - enemy_size.x) / 2.0, 100.0, 0.0);
-	let enemy_color = Color::rgb(204.0 / 255.0, 102.0 / 255.0, 255.0 / 255.0);
 	for row in 0..enemy_rows {
 		let y_position = row as f32 * (enemy_size.y + enemy_spacing);
 		for column in 0..enemy_columns {
@@ -99,7 +111,7 @@ fn setup(mut commands: Commands) {
 			commands
 				.spawn_bundle(SpriteBundle {
 					sprite: Sprite {
-						color: enemy_color,
+						custom_size: Some(Vec2::new(1.0, 1.0)),
 						..Default::default()
 					},
 					transform: Transform {
@@ -107,6 +119,7 @@ fn setup(mut commands: Commands) {
 						scale: enemy_size,
 						..Default::default()
 					},
+					texture: alien_handles[row].clone().into(),
 					..Default::default()
 				})
 				.insert(Enemy);
