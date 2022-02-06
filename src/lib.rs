@@ -3,6 +3,7 @@ use bevy::{
 	sprite::collide_aabb::{collide, Collision},
 	window::PresentMode,
 };
+use rand::prelude::*;
 
 pub struct MiniGamePlugin;
 
@@ -17,12 +18,15 @@ struct Player;
 struct PlayerBullet;
 
 #[derive(Component)]
-enum Collider {
-	Enemy,
-}
+struct Enemy;
 
 #[derive(Component)]
-struct ShotBulletTimer(Timer);
+struct EnemyBullet;
+
+#[derive(Component)]
+struct ShotPlayerBulletTimer(Timer);
+
+struct ShotEnemyBulletTimer(Timer);
 
 impl Plugin for MiniGamePlugin {
 	fn build(&self, app: &mut App) {
@@ -35,12 +39,18 @@ impl Plugin for MiniGamePlugin {
 				resizable: false,
 				..Default::default()
 			})
+			.insert_resource(ShotEnemyBulletTimer(Timer::from_seconds(2.0, true)))
 			.add_plugins(DefaultPlugins)
 			.add_startup_system(setup)
 			.add_system(move_player_by_keyboard_system)
-			.add_system(shot_bullet_by_keyboard_system)
-			.add_system(repeat_shot_by_timer_system)
-			.add_system(move_bullet_system);
+			.add_system(shot_player_bullet_by_keyboard_system)
+			.add_system(repeat_player_shot_by_timer_system)
+			.add_system(destroy_player_bullet_go_outside_system)
+			.add_system(move_player_bullet_system)
+			.add_system(destroy_enemy_system)
+			.add_system(randomly_shot_enemy_bullet_system)
+			.add_system(move_enemy_bullet_system)
+			.add_system(destroy_enemy_bullet_go_outside_system);
 	}
 }
 
@@ -67,6 +77,41 @@ fn setup(mut commands: Commands) {
 			..Default::default()
 		})
 		.insert(Player);
+
+	// Enemy
+	let enemy_rows = 4;
+	let enemy_columns = 6;
+	let enemy_spacing = 21.0;
+	let enemy_size = Vec3::new(PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE);
+	let enemies_width = enemy_columns as f32 * (enemy_size.x + enemy_spacing) - enemy_spacing;
+	// center the bricks and move them up a bit
+	let enemies_offset = Vec3::new(-(enemies_width - enemy_size.x) / 2.0, 100.0, 0.0);
+	let enemy_color = Color::rgb(204.0 / 255.0, 102.0 / 255.0, 255.0 / 255.0);
+	for row in 0..enemy_rows {
+		let y_position = row as f32 * (enemy_size.y + enemy_spacing);
+		for column in 0..enemy_columns {
+			let brick_position = Vec3::new(
+				column as f32 * (enemy_size.x + enemy_spacing),
+				y_position,
+				0.0,
+			) + enemies_offset;
+
+			commands
+				.spawn_bundle(SpriteBundle {
+					sprite: Sprite {
+						color: enemy_color,
+						..Default::default()
+					},
+					transform: Transform {
+						translation: brick_position,
+						scale: enemy_size,
+						..Default::default()
+					},
+					..Default::default()
+				})
+				.insert(Enemy);
+		}
+	}
 }
 
 fn move_player_by_keyboard_system(
@@ -112,7 +157,7 @@ fn move_player_by_keyboard_system(
 		.max(-WINDOW_HEIGHT / 2.0 + transform.scale.y / 2.0);
 }
 
-fn shot_bullet_by_keyboard_system(
+fn shot_player_bullet_by_keyboard_system(
 	mut commands: Commands,
 	keyboard_input: Res<Input<KeyCode>>,
 	query: Query<(&Player, &Transform)>,
@@ -130,10 +175,10 @@ fn shot_bullet_by_keyboard_system(
 	shot_player_bullet(commands, transform);
 }
 
-fn repeat_shot_by_timer_system(
+fn repeat_player_shot_by_timer_system(
 	commands: Commands,
 	time: Res<Time>,
-	mut timer: Option<ResMut<ShotBulletTimer>>,
+	mut timer: Option<ResMut<ShotPlayerBulletTimer>>,
 	player_query: Query<(&Player, &Transform)>,
 ) {
 	if let Some(ref mut timer) = timer {
@@ -147,14 +192,14 @@ fn repeat_shot_by_timer_system(
 }
 
 fn start_repeat_player_bullet_shot_timer(commands: &mut Commands) {
-	commands.insert_resource(ShotBulletTimer(Timer::new(
+	commands.insert_resource(ShotPlayerBulletTimer(Timer::new(
 		std::time::Duration::from_millis(400),
 		true,
 	)));
 }
 
 fn stop_repeat_player_bullet_shot_timer(commands: &mut Commands) {
-	commands.remove_resource::<ShotBulletTimer>();
+	commands.remove_resource::<ShotPlayerBulletTimer>();
 }
 
 fn shot_player_bullet(mut commands: Commands, player_transform: &Transform) {
@@ -178,8 +223,106 @@ fn shot_player_bullet(mut commands: Commands, player_transform: &Transform) {
 		.insert(PlayerBullet);
 }
 
-fn move_bullet_system(mut query: Query<(&PlayerBullet, &mut Transform)>) {
+fn move_player_bullet_system(mut query: Query<(&PlayerBullet, &mut Transform)>) {
 	for (_, mut transform) in query.iter_mut() {
 		transform.translation.y += 10.0;
+	}
+}
+
+fn destroy_player_bullet_go_outside_system(
+	mut commands: Commands,
+	player_bullet_query: Query<(Entity, &PlayerBullet, &Transform)>,
+) {
+	for (player_bullet_entity, _, player_bullet_transform) in player_bullet_query.iter() {
+		let player_bullet_bottom_y = player_bullet_transform.translation.y - PLAYER_SIZE / 2.0;
+		if player_bullet_bottom_y > WINDOW_HEIGHT / 2.0 {
+			commands.entity(player_bullet_entity).despawn();
+		}
+	}
+}
+
+fn destroy_enemy_system(
+	mut commands: Commands,
+	player_bullet_query: Query<(Entity, &PlayerBullet, &Transform)>,
+	enemy_query: Query<(Entity, &Enemy, &Transform)>,
+) {
+	for (player_bullet_entity, _, player_bullet_transform) in player_bullet_query.iter() {
+		for (enemy_entity, _, enemy_transform) in enemy_query.iter() {
+			let collision = collide(
+				player_bullet_transform.translation,
+				player_bullet_transform.scale.truncate(),
+				enemy_transform.translation,
+				enemy_transform.scale.truncate(),
+			);
+
+			if collision.is_some() {
+				commands.entity(enemy_entity).despawn();
+				commands.entity(player_bullet_entity).despawn();
+				break;
+			}
+		}
+	}
+}
+
+fn randomly_shot_enemy_bullet_system(
+	time: Res<Time>,
+	mut timer: ResMut<ShotEnemyBulletTimer>,
+	mut commands: Commands,
+	enemy_query: Query<(&Enemy, &Transform)>,
+) {
+	if !timer.0.tick(time.delta()).just_finished() {
+		return;
+	}
+
+	let mut rng = rand::thread_rng();
+	let mut shot_count = rng.gen_range(0..=3);
+	if shot_count == 0 {
+		return;
+	}
+	for (_, enemy_transform) in enemy_query.iter() {
+		if shot_count <= 0 {
+			break;
+		}
+
+		let shot = rng.gen::<bool>();
+		if shot {
+			commands
+				.spawn_bundle(SpriteBundle {
+					transform: Transform {
+						translation: Vec3::new(
+							enemy_transform.translation.x,
+							enemy_transform.translation.y,
+							0.0,
+						),
+						scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
+						..Default::default()
+					},
+					sprite: Sprite {
+						color: Color::rgb(0.0, 153.0 / 255.0, 51.0 / 255.0),
+						..Default::default()
+					},
+					..Default::default()
+				})
+				.insert(EnemyBullet);
+			shot_count -= 1;
+		}
+	}
+}
+
+fn move_enemy_bullet_system(mut query: Query<(&EnemyBullet, &mut Transform)>) {
+	for (_, mut transform) in query.iter_mut() {
+		transform.translation.y -= 3.0;
+	}
+}
+
+fn destroy_enemy_bullet_go_outside_system(
+	mut commands: Commands,
+	enemy_bullet_query: Query<(Entity, &EnemyBullet, &Transform)>,
+) {
+	for (enemy_bullet_entity, _, enemy_bullet_transform) in enemy_bullet_query.iter() {
+		let enemy_bullet_top_y = enemy_bullet_transform.translation.y + PLAYER_SIZE / 2.0;
+		if enemy_bullet_top_y < -WINDOW_HEIGHT / 2.0 {
+			commands.entity(enemy_bullet_entity).despawn();
+		}
 	}
 }

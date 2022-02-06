@@ -13,4 +13,4 @@ path = "src/main.rs"
 
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", features = ["dynamic"] }
-rand = "*"
+rand = "0.8"
