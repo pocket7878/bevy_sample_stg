@@ -21,7 +21,9 @@ struct PlayerBullet;
 struct Enemy;
 
 #[derive(Component)]
-struct EnemyBullet;
+struct EnemyBullet {
+	velocity: Vec3,
+}
 
 #[derive(Component)]
 struct ShotPlayerBulletTimer(Timer);
@@ -54,10 +56,7 @@ impl Plugin for MiniGamePlugin {
 	}
 }
 
-fn setup(
-	mut commands: Commands,
-	asset_server: Res<AssetServer>,
-) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 	commands.spawn_bundle(UiCameraBundle::default());
 
@@ -69,7 +68,6 @@ fn setup(
 		asset_server.load("images/purple_alien.png"),
 		asset_server.load("images/yellow_alien.png"),
 	];
-	
 	// Player
 	commands
 		.spawn_bundle(SpriteBundle {
@@ -299,32 +297,74 @@ fn randomly_shot_enemy_bullet_system(
 
 		let shot = rng.gen::<bool>();
 		if shot {
-			commands
-				.spawn_bundle(SpriteBundle {
-					transform: Transform {
-						translation: Vec3::new(
-							enemy_transform.translation.x,
-							enemy_transform.translation.y,
-							0.0,
-						),
-						scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
-						..Default::default()
-					},
-					sprite: Sprite {
-						color: Color::rgb(0.0, 153.0 / 255.0, 51.0 / 255.0),
-						..Default::default()
-					},
-					..Default::default()
-				})
-				.insert(EnemyBullet);
+			match rng.gen_range(0..=1) {
+				0 => shot_strait_enemy_bullet(&mut commands, enemy_transform),
+				1 => shot_triple_enemy_bullet(&mut commands, enemy_transform),
+				_ => panic!("Unexpected bullet type")
+			}
 			shot_count -= 1;
 		}
 	}
 }
 
+fn shot_strait_enemy_bullet(commands: &mut Commands, enemy_transform: &Transform) {
+	commands
+		.spawn_bundle(SpriteBundle {
+			transform: Transform {
+				translation: Vec3::new(
+					enemy_transform.translation.x,
+					enemy_transform.translation.y,
+					0.0,
+				),
+				scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
+				..Default::default()
+			},
+			sprite: Sprite {
+				color: Color::rgb(0.0, 153.0 / 255.0, 51.0 / 255.0),
+				..Default::default()
+			},
+			..Default::default()
+		})
+		.insert(EnemyBullet {
+			velocity: Vec3::new(0.0, -3.0, 0.0),
+		});
+}
+
+fn shot_triple_enemy_bullet(commands: &mut Commands, enemy_transform: &Transform) {
+	let bullet_vectors = vec![
+		Vec3::new(-3.0 * 0.71, -3.0 * 0.71, 0.0),
+		Vec3::new(0.0, -3.0 * 0.71, 0.0),
+		Vec3::new(3.0 * 0.71, -3.0 * 0.71, 0.0),
+	];
+	for v in bullet_vectors.into_iter() {
+		commands
+			.spawn_bundle(SpriteBundle {
+				transform: Transform {
+					translation: Vec3::new(
+						enemy_transform.translation.x,
+						enemy_transform.translation.y,
+						0.0,
+					),
+					scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
+					..Default::default()
+				},
+				sprite: Sprite {
+					color: Color::rgb(0.0, 153.0 / 255.0, 51.0 / 255.0),
+					..Default::default()
+				},
+				..Default::default()
+			})
+			.insert(EnemyBullet {
+				velocity: v
+			});
+	}
+}
+
 fn move_enemy_bullet_system(mut query: Query<(&EnemyBullet, &mut Transform)>) {
-	for (_, mut transform) in query.iter_mut() {
-		transform.translation.y -= 3.0;
+	for (bullet, mut transform) in query.iter_mut() {
+			transform.translation.x += bullet.velocity.x;
+			transform.translation.y += bullet.velocity.y;
+			transform.translation.z += bullet.velocity.z;
 	}
 }
 
