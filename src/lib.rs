@@ -1,15 +1,28 @@
-use bevy::{prelude::*, window::PresentMode};
+use bevy::{
+	prelude::*,
+	sprite::collide_aabb::{collide, Collision},
+	window::PresentMode,
+};
 
 pub struct MiniGamePlugin;
 
 const PLAYER_SIZE: f32 = 30.0;
-const WINDOW_HEIGHT: f32 = 500.0;
+const WINDOW_HEIGHT: f32 = 700.0;
 const WINDOW_WIDTH: f32 = 500.0;
-const PLAYER_X_MIN: f32 = -WINDOW_WIDTH / 2.0 + PLAYER_SIZE / 2.0;
-const PLAYER_X_MAX: f32 = WINDOW_WIDTH / 2.0 - PLAYER_SIZE / 2.0;
-const PLAYER_Y_MIN: f32 = -WINDOW_HEIGHT / 2.0 + PLAYER_SIZE / 2.0;
-const PLAYER_Y_MAX: f32 = WINDOW_HEIGHT / 2.0 - PLAYER_SIZE / 2.0;
-const GRAVITY: f32 = -1.0;
+
+#[derive(Component)]
+struct Player;
+
+#[derive(Component)]
+struct Bullet;
+
+#[derive(Component)]
+enum Collider {
+	Enemy,
+}
+
+#[derive(Component)]
+struct ShotBulletTimer(Timer);
 
 impl Plugin for MiniGamePlugin {
 	fn build(&self, app: &mut App) {
@@ -17,31 +30,17 @@ impl Plugin for MiniGamePlugin {
 			.insert_resource(WindowDescriptor {
 				title: "Mini Game".to_string(),
 				width: WINDOW_WIDTH,
-				height: WINDOW_WIDTH,
+				height: WINDOW_HEIGHT,
 				present_mode: PresentMode::Fifo,
 				resizable: false,
 				..Default::default()
 			})
 			.add_plugins(DefaultPlugins)
 			.add_startup_system(setup)
-			.add_system(move_player_left_or_right_by_keyboard_system)
-			.add_system(jump_player_by_keyboard_system)
-			.add_system(apply_gravity_system);
-	}
-}
-
-#[derive(Component)]
-struct Player {
-	jump_speed: f32,
-	jumping: bool,
-}
-
-impl Default for Player {
-	fn default() -> Self {
-		Self {
-			jump_speed: 0.0,
-			jumping: false,
-		}
+			.add_system(move_player_by_keyboard_system)
+			.add_system(shot_bullet_by_keyboard_system)
+			.add_system(repeat_shot_by_timer)
+			.add_system(move_bullet_system);
 	}
 }
 
@@ -54,8 +53,8 @@ fn setup(mut commands: Commands) {
 		.spawn_bundle(SpriteBundle {
 			transform: Transform {
 				translation: Vec3::new(
-					-(WINDOW_WIDTH / 2.0 - PLAYER_SIZE / 2.0),
-					-(WINDOW_HEIGHT / 2.0 - PLAYER_SIZE / 2.0),
+					0.0 - PLAYER_SIZE / 2.0,
+					-(WINDOW_HEIGHT / 2.0 - PLAYER_SIZE / 2.0) + PLAYER_SIZE * 3.0,
 					0.0,
 				),
 				scale: Vec3::new(PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE),
@@ -67,59 +66,117 @@ fn setup(mut commands: Commands) {
 			},
 			..Default::default()
 		})
-		.insert(Player::default());
+		.insert(Player);
 }
 
-fn move_player_left_or_right_by_keyboard_system(
+fn move_player_by_keyboard_system(
 	keyboard_input: Res<Input<KeyCode>>,
-	mut query: Query<(&mut Player, &mut Transform)>,
+	mut query: Query<(&Player, &mut Transform)>,
 ) {
-	let (mut player, mut transform) = query.single_mut();
-	let translation = &mut transform.translation;
+	let (_, mut transform) = query.single_mut();
 
-	// Move Left or Right
-	let move_dist = 3.0;
+	// 斜め移動も考慮して比率計算
+	let move_ratio;
+	if (keyboard_input.pressed(KeyCode::A) || keyboard_input.pressed(KeyCode::D))
+		&& (keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::S))
+	{
+		move_ratio = 0.71;
+	} else {
+		move_ratio = 1.0;
+	}
+
+	let move_dist = 1.0;
 	if keyboard_input.pressed(KeyCode::A) {
-		translation.x -= move_dist;
+		transform.translation.x -= move_dist * move_ratio;
 	}
 	if keyboard_input.pressed(KeyCode::D) {
-		translation.x += move_dist;
+		transform.translation.x += move_dist * move_ratio;
+	}
+	if keyboard_input.pressed(KeyCode::W) {
+		transform.translation.y += move_dist * move_ratio;
+	}
+	if keyboard_input.pressed(KeyCode::S) {
+		transform.translation.y -= move_dist * move_ratio;
 	}
 
-	translation.x = translation
+	transform.translation.x = transform
+		.translation
 		.x
-		.min(PLAYER_X_MAX)
-		.max(PLAYER_X_MIN);
+		.min(WINDOW_WIDTH / 2.0 - transform.scale.x / 2.0)
+		.max(-WINDOW_WIDTH / 2.0 + transform.scale.x / 2.0);
+
+	transform.translation.y = transform
+		.translation
+		.y
+		.min(WINDOW_HEIGHT / 2.0 - transform.scale.y / 2.0)
+		.max(-WINDOW_HEIGHT / 2.0 + transform.scale.y / 2.0);
 }
 
-fn jump_player_by_keyboard_system(
+fn shot_bullet_by_keyboard_system(
+	mut commands: Commands,
 	keyboard_input: Res<Input<KeyCode>>,
-	mut query: Query<&mut Player>,
+	query: Query<(&Player, &Transform)>,
 ) {
-	let mut player = query.single_mut();
-	if !player.jumping && keyboard_input.just_pressed(KeyCode::Space) {
-		player.jumping = true;
-		player.jump_speed = 15.0;
+	if keyboard_input.just_pressed(KeyCode::Space) {
+		commands.insert_resource(ShotBulletTimer(Timer::new(
+			std::time::Duration::from_millis(400),
+			true,
+		)));
+	} else if keyboard_input.just_released(KeyCode::Space) {
+		commands.remove_resource::<ShotBulletTimer>();
+		return;
+	} else {
+		return;
+	}
+
+	let (_, transform) = query.single();
+	commands
+		.spawn_bundle(SpriteBundle {
+			transform: Transform {
+				translation: Vec3::new(transform.translation.x, transform.translation.y, 0.0),
+				scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
+				..Default::default()
+			},
+			sprite: Sprite {
+				color: Color::rgb(1.0, 1.0, 0.5),
+				..Default::default()
+			},
+			..Default::default()
+		})
+		.insert(Bullet);
+}
+
+fn repeat_shot_by_timer(
+	mut commands: Commands,
+	time: Res<Time>,
+	mut timer: Option<ResMut<ShotBulletTimer>>,
+	player_query: Query<(&Player, &Transform)>,
+) {
+	if let Some(ref mut timer) = timer {
+		if !timer.0.tick(time.delta()).just_finished() {
+			return;
+		}
+
+		let (_, transform) = player_query.single();
+		commands
+			.spawn_bundle(SpriteBundle {
+				transform: Transform {
+					translation: Vec3::new(transform.translation.x, transform.translation.y, 0.0),
+					scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
+					..Default::default()
+				},
+				sprite: Sprite {
+					color: Color::rgb(1.0, 1.0, 0.5),
+					..Default::default()
+				},
+				..Default::default()
+			})
+			.insert(Bullet);
 	}
 }
 
-fn apply_gravity_system(
-	mut query: Query<(&mut Player, &mut Transform)>,
-) {
-	let (mut player, mut transform) = query.single_mut();
-	let translation = &mut transform.translation;
-
-	if player.jumping {
-		player.jump_speed += GRAVITY;
-		translation.y += player.jump_speed;
-	}
-
-	if translation.y <= PLAYER_Y_MIN {
-		// Player reached ground
-		player.jumping = false;
-		player.jump_speed = 0.0;
-		translation.y = PLAYER_Y_MIN;
-	} else if translation.y > PLAYER_Y_MAX {
-		translation.y = PLAYER_Y_MAX;
+fn move_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
+	for (_, mut transform) in query.iter_mut() {
+		transform.translation.y += 10.0;
 	}
 }
