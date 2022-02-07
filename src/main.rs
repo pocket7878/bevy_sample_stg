@@ -1,8 +1,8 @@
 use bevy::prelude::*;
-use minigame::MiniGamePlugin;
+use bevy_sample_stg::GamePlugin;
 
 fn main() {
     App::new()
-        .add_plugin(MiniGamePlugin)
+        .add_plugin(GamePlugin)
         .run();
 }

@@ -1,36 +1,36 @@
+mod play_area_descriptor;
+mod game_frame_count;
+mod player;
+mod player_shot;
+mod life_count;
+mod enemy;
+mod enemy_life_counter;
+
 use bevy::{
 	prelude::*,
-	sprite::collide_aabb::{collide, Collision},
+	sprite::collide_aabb::{collide},
 	window::PresentMode,
 };
+use enemy::Enemy;
 use rand::prelude::*;
 
-pub struct MiniGamePlugin;
+pub struct GamePlugin;
 
 const PLAYER_SIZE: f32 = 30.0;
 const WINDOW_HEIGHT: f32 = 700.0;
 const WINDOW_WIDTH: f32 = 500.0;
 
 #[derive(Component)]
-struct Player;
-
-#[derive(Component)]
 struct PlayerBullet;
-
-#[derive(Component)]
-struct Enemy;
 
 #[derive(Component)]
 struct EnemyBullet {
 	velocity: Vec3,
 }
 
-#[derive(Component)]
-struct ShotPlayerBulletTimer(Timer);
-
 struct ShotEnemyBulletTimer(Timer);
 
-impl Plugin for MiniGamePlugin {
+impl Plugin for GamePlugin {
 	fn build(&self, app: &mut App) {
 		app
 			.insert_resource(WindowDescriptor {
@@ -41,14 +41,25 @@ impl Plugin for MiniGamePlugin {
 				resizable: false,
 				..Default::default()
 			})
+			.insert_resource(play_area_descriptor::PlayAreaDescriptor {
+				min_x: -WINDOW_WIDTH / 2.0,
+				max_x: WINDOW_WIDTH / 2.0,
+				min_y: -WINDOW_HEIGHT / 2.0,
+				max_y: WINDOW_HEIGHT / 2.0,
+			})
+			.insert_resource(game_frame_count::GameFrameCount::default())
+			.insert_resource(game_frame_count::GameFrameCountTimer::default())
 			.insert_resource(ShotEnemyBulletTimer(Timer::from_seconds(2.0, true)))
+			.insert_resource(enemy_life_counter::EnemyLifeCountTimer::default())
 			.add_plugins(DefaultPlugins)
 			.add_startup_system(setup)
-			.add_system(move_player_by_keyboard_system)
-			.add_system(shot_player_bullet_by_keyboard_system)
-			.add_system(repeat_player_shot_by_timer_system)
-			.add_system(destroy_player_bullet_go_outside_system)
-			.add_system(move_player_bullet_system)
+			.add_system(game_frame_count::count_up_game_frame_system)
+			.add_system(enemy_life_counter::count_up_enemy_life_count_system)
+			.add_system(player::move_player_by_keyboard_system)
+			.add_system(player_shot::shot_player_bullet_by_keyboard_system)
+			.add_system(player_shot::repeat_player_shot_by_timer_system)
+			.add_system(player_shot::destroy_player_bullet_go_outside_system)
+			.add_system(player_shot::move_player_bullet_system)
 			.add_system(destroy_enemy_system)
 			.add_system(randomly_shot_enemy_bullet_system)
 			.add_system(move_enemy_bullet_system)
@@ -87,7 +98,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 			texture: rocket_asset_handle.into(),
 			..Default::default()
 		})
-		.insert(Player);
+		.insert(player::Player);
 
 	// Enemy
 	let enemy_rows = 4;
@@ -120,137 +131,12 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 					texture: alien_handles[row].clone().into(),
 					..Default::default()
 				})
-				.insert(Enemy);
+				.insert(Enemy)
+				.insert(life_count::LifeCount::default());
 		}
 	}
 }
 
-fn move_player_by_keyboard_system(
-	keyboard_input: Res<Input<KeyCode>>,
-	mut query: Query<(&Player, &mut Transform)>,
-) {
-	let (_, mut transform) = query.single_mut();
-
-	// 斜め移動も考慮して比率計算
-	let move_ratio;
-	if (keyboard_input.pressed(KeyCode::A) || keyboard_input.pressed(KeyCode::D))
-		&& (keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::S))
-	{
-		move_ratio = 0.71;
-	} else {
-		move_ratio = 1.0;
-	}
-
-	let move_dist = 1.0;
-	if keyboard_input.pressed(KeyCode::A) {
-		transform.translation.x -= move_dist * move_ratio;
-	}
-	if keyboard_input.pressed(KeyCode::D) {
-		transform.translation.x += move_dist * move_ratio;
-	}
-	if keyboard_input.pressed(KeyCode::W) {
-		transform.translation.y += move_dist * move_ratio;
-	}
-	if keyboard_input.pressed(KeyCode::S) {
-		transform.translation.y -= move_dist * move_ratio;
-	}
-
-	transform.translation.x = transform
-		.translation
-		.x
-		.min(WINDOW_WIDTH / 2.0 - transform.scale.x / 2.0)
-		.max(-WINDOW_WIDTH / 2.0 + transform.scale.x / 2.0);
-
-	transform.translation.y = transform
-		.translation
-		.y
-		.min(WINDOW_HEIGHT / 2.0 - transform.scale.y / 2.0)
-		.max(-WINDOW_HEIGHT / 2.0 + transform.scale.y / 2.0);
-}
-
-fn shot_player_bullet_by_keyboard_system(
-	mut commands: Commands,
-	keyboard_input: Res<Input<KeyCode>>,
-	query: Query<(&Player, &Transform)>,
-) {
-	if keyboard_input.just_pressed(KeyCode::Space) {
-		start_repeat_player_bullet_shot_timer(&mut commands);
-	} else if keyboard_input.just_released(KeyCode::Space) {
-		stop_repeat_player_bullet_shot_timer(&mut commands);
-		return;
-	} else {
-		return;
-	}
-
-	let (_, transform) = query.single();
-	shot_player_bullet(commands, transform);
-}
-
-fn repeat_player_shot_by_timer_system(
-	commands: Commands,
-	time: Res<Time>,
-	mut timer: Option<ResMut<ShotPlayerBulletTimer>>,
-	player_query: Query<(&Player, &Transform)>,
-) {
-	if let Some(ref mut timer) = timer {
-		if !timer.0.tick(time.delta()).just_finished() {
-			return;
-		}
-
-		let (_, transform) = player_query.single();
-		shot_player_bullet(commands, transform);
-	}
-}
-
-fn start_repeat_player_bullet_shot_timer(commands: &mut Commands) {
-	commands.insert_resource(ShotPlayerBulletTimer(Timer::new(
-		std::time::Duration::from_millis(400),
-		true,
-	)));
-}
-
-fn stop_repeat_player_bullet_shot_timer(commands: &mut Commands) {
-	commands.remove_resource::<ShotPlayerBulletTimer>();
-}
-
-fn shot_player_bullet(mut commands: Commands, player_transform: &Transform) {
-	commands
-		.spawn_bundle(SpriteBundle {
-			transform: Transform {
-				translation: Vec3::new(
-					player_transform.translation.x,
-					player_transform.translation.y,
-					0.0,
-				),
-				scale: Vec3::new(PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0, PLAYER_SIZE / 2.0),
-				..Default::default()
-			},
-			sprite: Sprite {
-				color: Color::rgb(1.0, 1.0, 0.5),
-				..Default::default()
-			},
-			..Default::default()
-		})
-		.insert(PlayerBullet);
-}
-
-fn move_player_bullet_system(mut query: Query<(&PlayerBullet, &mut Transform)>) {
-	for (_, mut transform) in query.iter_mut() {
-		transform.translation.y += 10.0;
-	}
-}
-
-fn destroy_player_bullet_go_outside_system(
-	mut commands: Commands,
-	player_bullet_query: Query<(Entity, &PlayerBullet, &Transform)>,
-) {
-	for (player_bullet_entity, _, player_bullet_transform) in player_bullet_query.iter() {
-		let player_bullet_bottom_y = player_bullet_transform.translation.y - PLAYER_SIZE / 2.0;
-		if player_bullet_bottom_y > WINDOW_HEIGHT / 2.0 {
-			commands.entity(player_bullet_entity).despawn();
-		}
-	}
-}
 
 fn destroy_enemy_system(
 	mut commands: Commands,

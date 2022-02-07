@@ -1,14 +1,14 @@
 [package]
-name = "minigame"
+name = "bevy_sample_stg"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "minigame"
+name = "bevy_sample_stg"
 path = "src/lib.rs"
 
 [[bin]]
-name = "minigame"
+name = "bevy_sample_stg"
 path = "src/main.rs"
 
 [dependencies]

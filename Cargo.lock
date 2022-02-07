@@ -540,6 +540,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_sample_stg"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "rand",
+]
+
+[[package]]
 name = "bevy_scene"
 version = "0.6.0"
 source = "git+https://github.com/bevyengine/bevy#385a2b189528d0c6c706f7d25969414b61450774"
@@ -1823,14 +1831,6 @@ dependencies = [
  "foreign-types",
  "log",
  "objc",
-]
-
-[[package]]
-name = "minigame"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "rand",
 ]
 
 [[package]]
