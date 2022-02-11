@@ -1,7 +1,8 @@
-use super::life_count;
+mod move_pattern;
+
 use super::life_count::LifeCount;
 use bevy::prelude::*;
-use rand::prelude::*;
+use move_pattern::{MovePattern};
 
 const ENEMY_SIZE: f32 = 30.0;
 
@@ -40,33 +41,6 @@ impl Default for EnemyMoveTimer {
 	}
 }
 
-#[derive(Component)]
-enum MoveStrategy {
-	DownStayUp,
-	DownStayLeftBottom,
-	DownStayRightBottom,
-	FastDownLeft,
-	FastDownRight,
-	LeftBottom,
-	RightBottom,
-}
-
-impl MoveStrategy {
-	fn random() -> Self {
-		let mut rng = rand::thread_rng();
-		match rng.gen_range(0..=6) {
-			0 => MoveStrategy::DownStayUp,
-			1 => MoveStrategy::DownStayLeftBottom,
-			2 => MoveStrategy::DownStayRightBottom,
-			3 => MoveStrategy::FastDownLeft,
-			4 => MoveStrategy::FastDownRight,
-			5 => MoveStrategy::LeftBottom,
-			6 => MoveStrategy::RightBottom,
-			_ => panic!("Unexpected strategy")
-		}
-	}
-}
-
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 	commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 	commands.spawn_bundle(UiCameraBundle::default());
@@ -101,7 +75,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 					sprite: Sprite {
 						custom_size: Some(Vec2::new(1.0, 1.0)),
 						..Default::default()
-					}, transform: Transform { translation: brick_position,
+					},
+					transform: Transform {
+						translation: brick_position,
 						scale: enemy_size,
 						..Default::default()
 					},
@@ -110,7 +86,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 				})
 				.insert(Enemy::default())
 				.insert(LifeCount::default())
-				.insert(MoveStrategy::random());
+				.insert(MovePattern::random());
 		}
 	}
 }
@@ -130,7 +106,7 @@ fn count_up_enemy_life_count_system(
 fn move_enemy_system(
 	time: Res<Time>,
 	mut timer: ResMut<EnemyMoveTimer>,
-	mut query: Query<(&Enemy, &mut Transform)>
+	mut query: Query<(&Enemy, &mut Transform)>,
 ) {
 	if timer.0.tick(time.delta()).just_finished() {
 		for (enemy, mut transform) in query.iter_mut() {
@@ -139,63 +115,10 @@ fn move_enemy_system(
 	}
 }
 
-fn update_enemy_velocity_system(
-	mut query: Query<(&mut Enemy, &LifeCount, &MoveStrategy)>,
-) {
+fn update_enemy_velocity_system(mut query: Query<(&mut Enemy, &LifeCount, &MovePattern)>) {
 	for (mut enemy, life_count, move_strategy) in query.iter_mut() {
-		match move_strategy {
-			MoveStrategy::DownStayUp => {
-				match life_count.count {
-					0 => enemy.velocity = Vec3::new(0.0, -1.0, 0.0),
-					40 => enemy.velocity = Vec3::new(0.0, 0.0, 0.0),
-					80 => enemy.velocity = Vec3::new(0.0, -3.0, 0.0),
-					_ => {}
-				}
-			},
-			MoveStrategy::DownStayLeftBottom => {
-				match life_count.count {
-					0 => enemy.velocity = Vec3::new(0.0, -1.0, 0.0),
-					40 => enemy.velocity = Vec3::new(0.0, 0.0, 0.0),
-					80 => enemy.velocity = Vec3::new(-1.0, -2.0, 0.0),
-					_ => {}
-				}
-			}
-			MoveStrategy::DownStayRightBottom => {
-				match life_count.count {
-					0 => enemy.velocity = Vec3::new(0.0, -1.0, 0.0),
-					40 => enemy.velocity = Vec3::new(0.0, 0.0, 0.0),
-					80 => enemy.velocity = Vec3::new(1.0, -2.0, 0.0),
-					_ => {}
-				}
-			}
-			MoveStrategy::FastDownLeft => {
-				if life_count.count == 0 {
-					enemy.velocity = Vec3::new(0.0, -5.0, 0.0);
-				}
-				if life_count.count < 100 {
-					enemy.velocity.x -= 5. / 100.;
-					enemy.velocity.y -= 5. / 100.;
-				}
-			}
-			MoveStrategy::FastDownRight => {
-				if life_count.count == 0 {
-					enemy.velocity = Vec3::new(0.0, -5.0, 0.0);
-				}
-				if life_count.count < 100 {
-					enemy.velocity.x += 5. / 100.;
-					enemy.velocity.y -= 5. / 100.;
-				}
-			}
-			MoveStrategy::LeftBottom => {
-				if life_count.count == 0 {
-					enemy.velocity = Vec3::new(-1.0, -2.0, 0.0);
-				}
-			}
-			MoveStrategy::RightBottom => {
-				if life_count.count == 0 {
-					enemy.velocity = Vec3::new(1.0, -2.0, 0.0);
-				}
-			}
-		}
+		move_strategy
+			.velocity_updater()
+			.update(&mut enemy, &life_count);
 	}
 }
