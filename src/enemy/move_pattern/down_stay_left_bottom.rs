@@ -5,12 +5,12 @@ use bevy::prelude::*;
 pub struct DownStayLeftBottomPatternVelocityUpdater;
 
 impl VelocityUpdater for DownStayLeftBottomPatternVelocityUpdater {
-	fn update(&self, enemy: &mut Enemy, life_count: &LifeCount) {
-		match life_count.count {
-			0 => enemy.velocity = Vec3::new(0.0, -1.0, 0.0),
-			40 => enemy.velocity = Vec3::new(0.0, 0.0, 0.0),
-			80 => enemy.velocity = Vec3::new(-1.0, -2.0, 0.0),
-			_ => {}
-		}
-	}
+    fn update(&self, enemy: &mut Enemy, life_count: &LifeCount) {
+        match life_count.count {
+            0 => enemy.velocity = Vec3::new(0.0, -1.0, 0.0),
+            40 => enemy.velocity = Vec3::new(0.0, 0.0, 0.0),
+            80 => enemy.velocity = Vec3::new(-1.0, -2.0, 0.0),
+            _ => {}
+        }
+    }
 }
