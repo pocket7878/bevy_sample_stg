@@ -1,10 +1,49 @@
 use bevy::prelude::*;
 use super::play_area_descriptor::PlayAreaDescriptor;
 
+const PLAYER_SIZE: f32 = 30.0;
+
+pub struct PlayerPlugin;
+
+impl Plugin for PlayerPlugin {
+	fn build(&self, app: &mut App) {
+		app.add_startup_system(setup)
+			.add_system(move_player_by_keyboard_system);
+	}
+}
+
 #[derive(Component)]
 pub struct Player;
 
-pub fn move_player_by_keyboard_system(
+fn setup(
+	play_area: Res<PlayAreaDescriptor>,
+	mut commands: Commands, asset_server: Res<AssetServer>
+) {
+	let rocket_asset_handle: Handle<Image> = asset_server.load("images/rocket.png");
+
+	// Player
+	commands
+		.spawn_bundle(SpriteBundle {
+			transform: Transform {
+				translation: Vec3::new(
+					0.0 - PLAYER_SIZE / 2.0,
+					(play_area.min_y - PLAYER_SIZE / 2.0) + PLAYER_SIZE * 3.0,
+					0.0,
+				),
+				scale: Vec3::new(PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE),
+				..Default::default()
+			},
+			sprite: Sprite {
+				custom_size: Some(Vec2::new(1.0, 1.0)),
+				..Default::default()
+			},
+			texture: rocket_asset_handle.into(),
+			..Default::default()
+		})
+		.insert(Player);
+}
+
+fn move_player_by_keyboard_system(
 	play_area: Res<PlayAreaDescriptor>,
 	keyboard_input: Res<Input<KeyCode>>,
 	mut query: Query<(&Player, &mut Transform)>,

@@ -4,18 +4,29 @@ use super::player::{Player};
 
 const BULLET_SIZE: f32 = 15.0;
 
+pub struct PlayerShotPlugin;
+
+impl Plugin for PlayerShotPlugin {
+	fn build(&self, app: &mut App) {
+		app.add_system(shot_player_bullet_by_keyboard_system)
+			.add_system(repeat_player_shot_by_timer_system)
+			.add_system(destroy_player_bullet_go_outside_system)
+			.add_system(move_player_bullet_system);
+	}
+}
+
 /*
  * Component
  */
 #[derive(Component)]
 pub struct Bullet;
 
-pub struct ShotPlayerBulletTimer(Timer);
+struct ShotPlayerBulletTimer(Timer);
 
 /*
  * System
  */
-pub fn shot_player_bullet_by_keyboard_system(
+fn shot_player_bullet_by_keyboard_system(
 	mut commands: Commands,
 	keyboard_input: Res<Input<KeyCode>>,
 	query: Query<(&Player, &Transform)>,
@@ -33,7 +44,7 @@ pub fn shot_player_bullet_by_keyboard_system(
 	shot_player_bullet(commands, transform);
 }
 
-pub fn repeat_player_shot_by_timer_system(
+fn repeat_player_shot_by_timer_system(
 	commands: Commands,
 	time: Res<Time>,
 	mut timer: Option<ResMut<ShotPlayerBulletTimer>>,
@@ -49,13 +60,13 @@ pub fn repeat_player_shot_by_timer_system(
 	}
 }
 
-pub fn move_player_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
+fn move_player_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
 	for (_, mut transform) in query.iter_mut() {
 		transform.translation.y += 10.0;
 	}
 }
 
-pub fn destroy_player_bullet_go_outside_system(
+fn destroy_player_bullet_go_outside_system(
 	play_area: Res<PlayAreaDescriptor>,
 	mut commands: Commands,
 	player_bullet_query: Query<(Entity, &Bullet, &Transform)>,
@@ -68,6 +79,9 @@ pub fn destroy_player_bullet_go_outside_system(
 	}
 }
 
+/*
+ * Utils
+ */
 fn start_repeat_player_bullet_shot_timer(commands: &mut Commands) {
 	commands.insert_resource(ShotPlayerBulletTimer(Timer::new(
 		std::time::Duration::from_millis(400),
