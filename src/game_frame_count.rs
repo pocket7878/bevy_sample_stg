@@ -16,7 +16,7 @@ pub struct GameFrameCount {
 	pub count: i128,
 }
 
-struct GameFrameCountTimer(Timer);
+pub struct GameFrameCountTimer(Timer);
 
 impl Default for GameFrameCountTimer {
 	fn default() -> Self {
