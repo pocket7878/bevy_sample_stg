@@ -7,7 +7,7 @@ mod play_area_descriptor;
 mod player;
 mod player_shot;
 
-use bevy::{prelude::*, window::PresentMode};
+use bevy::prelude::*;
 
 pub struct GamePlugin;
 
@@ -20,7 +20,6 @@ impl Plugin for GamePlugin {
             title: "Mini Game".to_string(),
             width: WINDOW_WIDTH,
             height: WINDOW_HEIGHT,
-            present_mode: PresentMode::Fifo,
             resizable: false,
             ..Default::default()
         })
