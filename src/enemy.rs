@@ -1,6 +1,8 @@
+mod barrage;
 mod move_pattern;
 
 use super::life_count::LifeCount;
+use barrage::EnemyBarragePlugin;
 use bevy::prelude::*;
 use move_pattern::MovePattern;
 
@@ -12,6 +14,7 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemyLifeCountTimer::default())
             .insert_resource(EnemyMoveTimer::default())
+            .add_plugin(EnemyBarragePlugin)
             .add_startup_system(setup)
             .add_system(count_up_enemy_life_count_system)
             .add_system(move_enemy_system)

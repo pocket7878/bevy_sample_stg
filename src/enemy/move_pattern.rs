@@ -54,7 +54,6 @@ impl MovePattern {
             Self::FastDownRight => Box::new(fast_down_right::FastDownRightPatternVelocityUpdater),
             Self::LeftBottom => Box::new(left_bottom::LeftBottomPatternVelocityUpdater),
             Self::RightBottom => Box::new(right_bottom::RightBottomPatternVelocityUpdater),
-            _ => todo!(),
         }
     }
 }

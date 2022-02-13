@@ -1,7 +1,7 @@
 [package]
+edition = "2021"
 name = "bevy_sample_stg"
 version = "0.1.0"
-edition = "2021"
 
 [lib]
 name = "bevy_sample_stg"
@@ -12,5 +12,7 @@ name = "bevy_sample_stg"
 path = "src/main.rs"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", features = ["dynamic"] }
+anyhow = "1.0"
+bevy = {version = "0.6.0", features = ["dynamic"]}
+bevy_bulletml = "0.2.1"
 rand = "0.8"
