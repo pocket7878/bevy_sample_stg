@@ -12,5 +12,7 @@ name = "bevy_sample_stg"
 path = "src/main.rs"
 
 [dependencies]
+anyhow = "1.0"
 bevy = {version = "0.6.0", features = ["dynamic"]}
+bevy_bulletml = "0.2.1"
 rand = "0.8"

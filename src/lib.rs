@@ -1,6 +1,5 @@
 mod destroy_enemy;
 mod enemy;
-mod enemy_shot;
 mod game_frame_count;
 mod life_count;
 mod play_area_descriptor;
@@ -34,7 +33,6 @@ impl Plugin for GamePlugin {
         .add_plugin(player::PlayerPlugin)
         .add_plugin(player_shot::PlayerShotPlugin)
         .add_plugin(enemy::EnemyPlugin)
-        .add_plugin(enemy_shot::EnemyShotPlugin)
         .add_startup_system(setup_camera)
         .add_system(destroy_enemy::destroy_enemy_system);
     }
