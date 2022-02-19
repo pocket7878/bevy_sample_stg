@@ -2,12 +2,14 @@ mod assets_holder;
 mod barrage;
 mod emerge;
 mod move_pattern;
+mod system_label;
 
 use super::life_count::LifeCount;
 use crate::enemy::emerge::EnemyEmergePlugin;
 use barrage::EnemyBarragePlugin;
 use bevy::prelude::*;
 use move_pattern::MovePattern;
+use system_label::EnemySystemLabel;
 
 const ENEMY_SIZE: f32 = 30.0;
 
@@ -20,9 +22,9 @@ impl Plugin for EnemyPlugin {
             .add_plugin(EnemyBarragePlugin)
             .add_plugin(EnemyEmergePlugin)
             .add_startup_system(setup)
-            .add_system(count_up_enemy_life_count_system)
+            .add_system(count_up_enemy_life_count_system.label(EnemySystemLabel::LifeCount))
             .add_system(move_enemy_system)
-            .add_system(update_enemy_velocity_system);
+            .add_system(update_enemy_velocity_system.before(EnemySystemLabel::LifeCount));
     }
 }
 
@@ -86,7 +88,9 @@ fn move_enemy_system(
     }
 }
 
-fn update_enemy_velocity_system(mut query: Query<(&mut Enemy, &LifeCount, &MovePattern)>) {
+fn update_enemy_velocity_system(
+    mut query: Query<(&mut Enemy, &LifeCount, &MovePattern), Changed<LifeCount>>,
+) {
     for (mut enemy, life_count, move_pattern) in query.iter_mut() {
         move_pattern
             .velocity_updater()

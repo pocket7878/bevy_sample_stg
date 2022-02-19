@@ -1,8 +1,8 @@
 apper_frame,init_x,init_y,move_pattern,barrage_pattern,barrage_start_life_count
-30,0,370,1,none,40
-30,-30,370,1,aim_triple,40
-30,-60,370,1,none,40
-30,0,370,2,none,40
-30,30,370,2,aim_triple,40
-30,60,370,2,none,40
+30,-25,370,1,none,40
+30,-50,370,1,aim_triple,40
+30,-100,370,1,none,40
+30,25,370,2,none,40
+30,50,370,2,aim_triple,40
+30,100,370,2,none,40
 30,0,370,0,aim_triple,40

@@ -6,6 +6,7 @@ mod play_area_descriptor;
 mod player;
 mod player_shot;
 
+use bevy::log::LogPlugin;
 use bevy::prelude::*;
 
 pub struct GamePlugin;

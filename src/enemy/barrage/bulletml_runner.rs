@@ -35,10 +35,6 @@ impl AppRunner<BulletMLRunnerData, Bullet> for BulletMLRunner {
         if result_deg < 0. {
             result_deg += 360.0;
         }
-        println!(
-            "bullet_pos: ({}, {}), target_pos: ({}, {}), deg: {}",
-            bullet_position.x, bullet_position.y, target_position.x, target_position.y, result_deg
-        );
 
         return result_deg;
     }
