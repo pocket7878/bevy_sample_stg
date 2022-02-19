@@ -1,5 +1,5 @@
-use super::play_area_descriptor::PlayAreaDescriptor;
 use super::player::Player;
+use crate::play_area::PlayAreaDescriptor;
 use bevy::prelude::*;
 
 const BULLET_SIZE: f32 = 15.0;
@@ -73,7 +73,7 @@ fn destroy_player_bullet_go_outside_system(
 ) {
     for (player_bullet_entity, _, player_bullet_transform) in player_bullet_query.iter() {
         let player_bullet_bottom_y = player_bullet_transform.translation.y - BULLET_SIZE;
-        if player_bullet_bottom_y > play_area.max_y {
+        if player_bullet_bottom_y > play_area.max_y() {
             commands.entity(player_bullet_entity).despawn();
         }
     }

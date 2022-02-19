@@ -11,8 +11,6 @@ use emerge::EnemyEmergePlugin;
 use movement::EnemyMovementPlugin;
 use system_label::EnemySystemLabel;
 
-const ENEMY_SIZE: f32 = 30.0;
-
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {

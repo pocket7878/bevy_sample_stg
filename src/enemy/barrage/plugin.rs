@@ -5,7 +5,7 @@ use crate::enemy::barrage::bulletml_runner::BulletMLRunnerData;
 use crate::enemy::barrage::configuration::BarrageConfiguration;
 use crate::enemy::Enemy;
 use crate::life_count::LifeCount;
-use crate::play_area_descriptor::PlayAreaDescriptor;
+use crate::play_area::PlayAreaDescriptor;
 use crate::player::Player;
 use bevy::prelude::*;
 use bevy_bulletml::BulletMLServer;
