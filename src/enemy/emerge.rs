@@ -1,6 +1,7 @@
 use crate::enemy::assets_holder::EnemyAssetsHolder;
 use crate::enemy::barrage::configuration::BarrageConfiguration;
 use crate::enemy::movement::move_pattern::MovePattern;
+use crate::enemy::system_label::EnemySystemLabel;
 use crate::enemy::Enemy;
 use crate::life_count::LifeCount;
 use crate::play_area::PlayAreaDescriptor;
@@ -22,8 +23,8 @@ impl Plugin for EnemyEmergePlugin {
             .add_event::<EnemyEmergeFrameChangedEvent>()
             .insert_resource(EnemyEmergeTimer::default())
             .insert_resource(EnemyEmergeFrameCount::default())
-            .add_system(count_up_enemy_emerge_frame_system)
-            .add_system(emerge_enemy_system);
+            .add_system(count_up_enemy_emerge_frame_system.label(EnemySystemLabel::EmergeCount))
+            .add_system(emerge_enemy_system.before(EnemySystemLabel::EmergeCount));
         return;
     }
 }

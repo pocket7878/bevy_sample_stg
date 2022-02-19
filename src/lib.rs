@@ -9,7 +9,6 @@ mod scoreboard;
 
 use crate::play_area::PlayAreaPlugin;
 use crate::scoreboard::ScoreBoardPlugin;
-use bevy::ecs::schedule::RunOnce;
 use bevy::prelude::*;
 
 pub struct GamePlugin;
