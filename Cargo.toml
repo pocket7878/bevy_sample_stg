@@ -15,4 +15,5 @@ path = "src/main.rs"
 anyhow = "1.0"
 bevy = {version = "0.6.0", features = ["dynamic"]}
 bevy_bulletml = "0.2.1"
+csv = "1.1"
 rand = "0.8"

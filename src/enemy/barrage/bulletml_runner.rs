@@ -26,11 +26,21 @@ impl AppRunner<BulletMLRunnerData, Bullet> for BulletMLRunner {
         bullet_position: &Vec3,
         target_position: &Vec3,
     ) -> f64 {
-        f64::atan2(
+        let rad = f64::atan2(
             (target_position.x - bullet_position.x) as f64,
-            (bullet_position.y - target_position.y) as f64,
-        ) * 180.
-            / std::f64::consts::PI
+            (target_position.y - bullet_position.y) as f64,
+        );
+        let rad_to_deg = 180.0 / std::f64::consts::PI;
+        let mut result_deg = rad * rad_to_deg;
+        if result_deg < 0. {
+            result_deg += 360.0;
+        }
+        println!(
+            "bullet_pos: ({}, {}), target_pos: ({}, {}), deg: {}",
+            bullet_position.x, bullet_position.y, target_position.x, target_position.y, result_deg
+        );
+
+        return result_deg;
     }
 
     fn get_bullet_speed(&self, _: &BulletMLRunnerData, bullet: &Bullet) -> f64 {

@@ -1,7 +1,10 @@
+mod assets_holder;
 mod barrage;
+mod emerge;
 mod move_pattern;
 
 use super::life_count::LifeCount;
+use crate::enemy::emerge::EnemyEmergePlugin;
 use barrage::EnemyBarragePlugin;
 use bevy::prelude::*;
 use move_pattern::MovePattern;
@@ -15,6 +18,7 @@ impl Plugin for EnemyPlugin {
         app.insert_resource(EnemyLifeCountTimer::default())
             .insert_resource(EnemyMoveTimer::default())
             .add_plugin(EnemyBarragePlugin)
+            .add_plugin(EnemyEmergePlugin)
             .add_startup_system(setup)
             .add_system(count_up_enemy_life_count_system)
             .add_system(move_enemy_system)
@@ -44,53 +48,18 @@ impl Default for EnemyMoveTimer {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // Setup camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
-    // Load assets
-    let alien_handles: Vec<Handle<Image>> = vec![
-        asset_server.load("images/blue_alien.png"),
-        asset_server.load("images/pink_alien.png"),
-        asset_server.load("images/purple_alien.png"),
-        asset_server.load("images/yellow_alien.png"),
-    ];
-
-    // Enemy
-    let enemy_rows = 4;
-    let enemy_columns = 6;
-    let enemy_spacing = 21.0;
-    let enemy_size = Vec3::new(ENEMY_SIZE, ENEMY_SIZE, ENEMY_SIZE);
-    let enemies_width = enemy_columns as f32 * (enemy_size.x + enemy_spacing) - enemy_spacing;
-    // center the bricks and move them up a bit
-    let enemies_offset = Vec3::new(-(enemies_width - enemy_size.x) / 2.0, 100.0, 0.0);
-    for row in 0..enemy_rows {
-        let y_position = row as f32 * (enemy_size.y + enemy_spacing);
-        for column in 0..enemy_columns {
-            let brick_position = Vec3::new(
-                column as f32 * (enemy_size.x + enemy_spacing),
-                y_position,
-                0.0,
-            ) + enemies_offset;
-
-            commands
-                .spawn_bundle(SpriteBundle {
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(1.0, 1.0)),
-                        ..Default::default()
-                    },
-                    transform: Transform {
-                        translation: brick_position,
-                        scale: enemy_size,
-                        ..Default::default()
-                    },
-                    texture: alien_handles[row].clone().into(),
-                    ..Default::default()
-                })
-                .insert(Enemy::default())
-                .insert(LifeCount::default())
-                .insert(MovePattern::random());
-        }
-    }
+    // Load & store assets
+    let assets_holder = assets_holder::EnemyAssetsHolder {
+        blue: asset_server.load("images/blue_alien.png"),
+        pink: asset_server.load("images/pink_alien.png"),
+        purple: asset_server.load("images/purple_alien.png"),
+        yellow: asset_server.load("images/yellow_alien.png"),
+    };
+    commands.insert_resource(assets_holder);
 }
 
 fn count_up_enemy_life_count_system(
