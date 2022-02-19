@@ -1,11 +1,13 @@
 use super::enemy::Enemy;
 use super::player_shot::Bullet as PlayerBullet;
+use crate::scoreboard::Score;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 pub fn destroy_enemy_system(
     mut commands: Commands,
     player_bullet_query: Query<(Entity, &PlayerBullet, &Transform)>,
     enemy_query: Query<(Entity, &Enemy, &Transform)>,
+    mut score: ResMut<Score>,
 ) {
     for (player_bullet_entity, _, player_bullet_transform) in player_bullet_query.iter() {
         for (enemy_entity, _, enemy_transform) in enemy_query.iter() {
@@ -19,6 +21,7 @@ pub fn destroy_enemy_system(
             if collision.is_some() {
                 commands.entity(enemy_entity).despawn();
                 commands.entity(player_bullet_entity).despawn();
+                score.add_score(100);
                 break;
             }
         }
