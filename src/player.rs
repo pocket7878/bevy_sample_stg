@@ -1,4 +1,4 @@
-use super::play_area_descriptor::PlayAreaDescriptor;
+use crate::play_area::PlayAreaDescriptor;
 use bevy::prelude::*;
 
 const PLAYER_SIZE: f32 = 30.0;
@@ -22,13 +22,13 @@ fn setup(
 ) {
     let rocket_asset_handle: Handle<Image> = asset_server.load("images/rocket.png");
 
-    // Player
     commands
         .spawn_bundle(SpriteBundle {
             transform: Transform {
                 translation: Vec3::new(
-                    0.0 - PLAYER_SIZE / 2.0,
-                    (play_area.min_y - PLAYER_SIZE / 2.0) + PLAYER_SIZE * 3.0,
+                    play_area.origin.x - PLAYER_SIZE / 2.0,
+                    play_area.origin.y
+                        - (play_area.height / 2. - PLAYER_SIZE * 3.0 - PLAYER_SIZE / 2.0),
                     0.0,
                 ),
                 scale: Vec3::new(PLAYER_SIZE, PLAYER_SIZE, PLAYER_SIZE),
@@ -78,12 +78,12 @@ fn move_player_by_keyboard_system(
     transform.translation.x = transform
         .translation
         .x
-        .min(play_area.max_x - transform.scale.x)
-        .max(play_area.min_x + transform.scale.y);
+        .min(play_area.max_x() - transform.scale.x)
+        .max(play_area.min_x() + transform.scale.y);
 
     transform.translation.y = transform
         .translation
         .y
-        .min(play_area.max_y - transform.scale.y / 2.0)
-        .max(play_area.min_y + transform.scale.y / 2.0);
+        .min(play_area.max_y() - transform.scale.y / 2.0)
+        .max(play_area.min_y() + transform.scale.y / 2.0);
 }

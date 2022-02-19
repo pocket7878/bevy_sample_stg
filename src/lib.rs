@@ -2,17 +2,20 @@ mod destroy_enemy;
 mod enemy;
 mod game_frame_count;
 mod life_count;
-mod play_area_descriptor;
+mod play_area;
 mod player;
 mod player_shot;
+mod scoreboard;
 
-use bevy::log::LogPlugin;
+use crate::play_area::PlayAreaPlugin;
+use crate::scoreboard::ScoreBoardPlugin;
+use bevy::ecs::schedule::RunOnce;
 use bevy::prelude::*;
 
 pub struct GamePlugin;
 
-const WINDOW_HEIGHT: f32 = 700.0;
-const WINDOW_WIDTH: f32 = 500.0;
+pub const WINDOW_HEIGHT: f32 = 700.0;
+pub const WINDOW_WIDTH: f32 = 700.0;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
@@ -23,13 +26,9 @@ impl Plugin for GamePlugin {
             resizable: false,
             ..Default::default()
         })
-        .insert_resource(play_area_descriptor::PlayAreaDescriptor {
-            min_x: -WINDOW_WIDTH / 2.0,
-            max_x: WINDOW_WIDTH / 2.0,
-            min_y: -WINDOW_HEIGHT / 2.0,
-            max_y: WINDOW_HEIGHT / 2.0,
-        })
         .add_plugins(DefaultPlugins)
+        .add_plugin(PlayAreaPlugin)
+        .add_plugin(ScoreBoardPlugin)
         .add_plugin(game_frame_count::GameFrameCountPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(player_shot::PlayerShotPlugin)
