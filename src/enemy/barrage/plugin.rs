@@ -25,6 +25,9 @@ impl Plugin for EnemyBarragePlugin {
         bulletml_server
             .load_file("none", "data/barrage/none.xml")
             .unwrap();
+        bulletml_server
+            .load_file("triple", "data/barrage/triple.xml")
+            .unwrap();
 
         app.insert_resource(BulletFrameTimer::default())
             .insert_resource(bulletml_server)

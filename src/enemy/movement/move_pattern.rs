@@ -6,8 +6,8 @@ mod fast_down_right;
 mod left_bottom;
 mod right_bottom;
 
-use super::super::life_count::LifeCount;
 use super::Enemy;
+use crate::life_count::LifeCount;
 use bevy::prelude::*;
 use rand::prelude::*;
 

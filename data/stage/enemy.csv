@@ -6,3 +6,10 @@ apper_frame,init_x,init_y,move_pattern,barrage_pattern,barrage_start_life_count
 30,50,370,2,aim_triple,40
 30,100,370,2,none,40
 30,0,370,0,aim_triple,40
+220,-25,370,0,triple,40
+220,-50,370,0,triple,40
+220,-100,370,0,triple,40
+220,0,370,0,triple,40
+220,25,370,0,triple,40
+220,50,370,0,triple,40
+220,100,370,0,triple,40

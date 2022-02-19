@@ -1,7 +1,7 @@
 use crate::enemy::assets_holder::EnemyAssetsHolder;
 use crate::enemy::barrage::configuration::BarrageConfiguration;
+use crate::enemy::movement::move_pattern::MovePattern;
 use crate::enemy::Enemy;
-use crate::enemy::MovePattern;
 use crate::life_count::LifeCount;
 use bevy::prelude::*;
 use std::collections::HashMap;
