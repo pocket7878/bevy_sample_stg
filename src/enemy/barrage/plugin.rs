@@ -3,6 +3,7 @@ use crate::enemy::barrage::bullet::BulletType;
 use crate::enemy::barrage::bulletml_runner::BulletMLRunner;
 use crate::enemy::barrage::bulletml_runner::BulletMLRunnerData;
 use crate::enemy::barrage::configuration::BarrageConfiguration;
+use crate::enemy::system_label::EnemySystemLabel;
 use crate::enemy::Enemy;
 use crate::life_count::LifeCount;
 use crate::play_area::PlayAreaDescriptor;
@@ -31,7 +32,7 @@ impl Plugin for EnemyBarragePlugin {
 
         app.insert_resource(BulletFrameTimer::default())
             .insert_resource(bulletml_server)
-            .add_system(start_barrage_system)
+            .add_system(start_barrage_system.before(EnemySystemLabel::LifeCount))
             .add_system(move_enemy_bullet_system)
             .add_system(despawn_bullet_system)
             .add_system(move_enemy_bullet_system)
@@ -61,7 +62,10 @@ fn move_enemy_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
 
 fn start_barrage_system(
     bulletml_server: Res<BulletMLServer>,
-    query: Query<(&Transform, &LifeCount, &BarrageConfiguration), With<Enemy>>,
+    query: Query<
+        (&Transform, &LifeCount, &BarrageConfiguration),
+        (With<Enemy>, Changed<LifeCount>),
+    >,
     mut commands: Commands,
 ) {
     for (transform, life_count, barrage_conf) in query.iter() {

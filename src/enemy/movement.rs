@@ -1,4 +1,5 @@
 pub mod move_pattern;
+use super::system_label::EnemySystemLabel;
 use crate::enemy::Enemy;
 use crate::life_count::LifeCount;
 use bevy::prelude::*;
@@ -10,7 +11,7 @@ impl Plugin for EnemyMovementPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemyMoveTimer::default())
             .add_system(move_enemy_system)
-            .add_system(update_enemy_velocity_system);
+            .add_system(update_enemy_velocity_system.before(EnemySystemLabel::LifeCount));
     }
 }
 
