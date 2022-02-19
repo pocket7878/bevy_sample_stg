@@ -11,7 +11,7 @@ use super::Enemy;
 use bevy::prelude::*;
 use rand::prelude::*;
 
-#[derive(Component)]
+#[derive(Debug, Clone, Component)]
 pub enum MovePattern {
     DownStayUp,
     DownStayLeftBottom,

@@ -2,6 +2,7 @@ use super::bullet::Bullet;
 use crate::enemy::barrage::bullet::BulletType;
 use crate::enemy::barrage::bulletml_runner::BulletMLRunner;
 use crate::enemy::barrage::bulletml_runner::BulletMLRunnerData;
+use crate::enemy::barrage::configuration::BarrageConfiguration;
 use crate::enemy::Enemy;
 use crate::life_count::LifeCount;
 use crate::play_area_descriptor::PlayAreaDescriptor;
@@ -17,6 +18,12 @@ impl Plugin for EnemyBarragePlugin {
         let mut bulletml_server = BulletMLServer::new();
         bulletml_server
             .load_file("circle", "data/barrage/circle.xml")
+            .unwrap();
+        bulletml_server
+            .load_file("aim_triple", "data/barrage/aim_triple.xml")
+            .unwrap();
+        bulletml_server
+            .load_file("none", "data/barrage/none.xml")
             .unwrap();
 
         app.insert_resource(BulletFrameTimer::default())
@@ -51,13 +58,13 @@ fn move_enemy_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
 
 fn start_barrage_system(
     bulletml_server: Res<BulletMLServer>,
-    query: Query<(&Transform, &LifeCount), With<Enemy>>,
+    query: Query<(&Transform, &LifeCount, &BarrageConfiguration), With<Enemy>>,
     mut commands: Commands,
 ) {
-    let bml = bulletml_server.get("circle");
-    if let Some(bml) = bml {
-        for (transform, life_count) in query.iter() {
-            if life_count.count == 40 {
+    for (transform, life_count, barrage_conf) in query.iter() {
+        if life_count.count == barrage_conf.start_life_count {
+            let bml = bulletml_server.get(&barrage_conf.barrage_type);
+            if let Some(bml) = bml {
                 commands
                     .spawn()
                     .insert(Bullet {
@@ -74,8 +81,6 @@ fn start_barrage_system(
                     });
             }
         }
-    } else {
-        println!("Failed to load circle.xml bulletml");
     }
 }
 
