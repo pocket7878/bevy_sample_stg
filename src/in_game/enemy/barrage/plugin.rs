@@ -1,13 +1,14 @@
 use super::bullet::Bullet;
-use crate::enemy::barrage::bullet::BulletType;
-use crate::enemy::barrage::bulletml_runner::BulletMLRunner;
-use crate::enemy::barrage::bulletml_runner::BulletMLRunnerData;
-use crate::enemy::barrage::configuration::BarrageConfiguration;
-use crate::enemy::system_label::EnemySystemLabel;
-use crate::enemy::Enemy;
-use crate::life_count::LifeCount;
-use crate::play_area::PlayAreaDescriptor;
-use crate::player::Player;
+use crate::app_state::AppState;
+use crate::in_game::enemy::barrage::bullet::BulletType;
+use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunner;
+use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunnerData;
+use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
+use crate::in_game::enemy::system_label::EnemySystemLabel;
+use crate::in_game::enemy::Enemy;
+use crate::in_game::life_count::LifeCount;
+use crate::in_game::play_area::PlayAreaDescriptor;
+use crate::in_game::player::Player;
 use bevy::prelude::*;
 use bevy_bulletml::BulletMLServer;
 use bevy_bulletml::Runner;
@@ -16,27 +17,15 @@ pub struct EnemyBarragePlugin;
 
 impl Plugin for EnemyBarragePlugin {
     fn build(&self, app: &mut App) {
-        let mut bulletml_server = BulletMLServer::new();
-        bulletml_server
-            .load_file("circle", "data/barrage/circle.xml")
-            .unwrap();
-        bulletml_server
-            .load_file("aim_triple", "data/barrage/aim_triple.xml")
-            .unwrap();
-        bulletml_server
-            .load_file("none", "data/barrage/none.xml")
-            .unwrap();
-        bulletml_server
-            .load_file("triple", "data/barrage/triple.xml")
-            .unwrap();
-
-        app.insert_resource(BulletFrameTimer::default())
-            .insert_resource(bulletml_server)
-            .add_system(start_barrage_system.before(EnemySystemLabel::LifeCount))
-            .add_system(move_enemy_bullet_system)
-            .add_system(despawn_bullet_system)
-            .add_system(move_enemy_bullet_system)
-            .add_system(update_bullet_system);
+        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup));
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(start_barrage_system.before(EnemySystemLabel::LifeCount))
+                .with_system(move_enemy_bullet_system)
+                .with_system(despawn_bullet_system)
+                .with_system(move_enemy_bullet_system)
+                .with_system(update_bullet_system),
+        );
     }
 }
 
@@ -54,6 +43,13 @@ impl Default for BulletFrameTimer {
 /*
  * System
  */
+
+fn setup(mut commands: Commands) {
+    let bullet_ml_server = build_bulletml_server();
+    commands.insert_resource(bullet_ml_server);
+    commands.insert_resource(BulletFrameTimer::default());
+}
+
 fn move_enemy_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
     for (bullet, mut transform) in query.iter_mut() {
         bullet.update(&mut transform);
@@ -147,4 +143,25 @@ fn despawn_bullet_system(
             }
         }
     }
+}
+
+/*
+ * Utils
+ */
+fn build_bulletml_server() -> BulletMLServer {
+    let mut bulletml_server = BulletMLServer::new();
+    bulletml_server
+        .load_file("circle", "data/barrage/circle.xml")
+        .unwrap();
+    bulletml_server
+        .load_file("aim_triple", "data/barrage/aim_triple.xml")
+        .unwrap();
+    bulletml_server
+        .load_file("none", "data/barrage/none.xml")
+        .unwrap();
+    bulletml_server
+        .load_file("triple", "data/barrage/triple.xml")
+        .unwrap();
+
+    return bulletml_server;
 }

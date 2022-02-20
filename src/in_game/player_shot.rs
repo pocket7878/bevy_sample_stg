@@ -1,5 +1,6 @@
 use super::player::Player;
-use crate::play_area::PlayAreaDescriptor;
+use crate::app_state::AppState;
+use crate::in_game::play_area::PlayAreaDescriptor;
 use bevy::prelude::*;
 
 const BULLET_SIZE: f32 = 15.0;
@@ -8,10 +9,13 @@ pub struct PlayerShotPlugin;
 
 impl Plugin for PlayerShotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(shot_player_bullet_by_keyboard_system)
-            .add_system(repeat_player_shot_by_timer_system)
-            .add_system(destroy_player_bullet_go_outside_system)
-            .add_system(move_player_bullet_system);
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(shot_player_bullet_by_keyboard_system)
+                .with_system(repeat_player_shot_by_timer_system)
+                .with_system(destroy_player_bullet_go_outside_system)
+                .with_system(move_player_bullet_system),
+        );
     }
 }
 

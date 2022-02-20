@@ -1,14 +1,8 @@
-mod destroy_enemy;
-mod enemy;
-mod game_frame_count;
-mod life_count;
-mod play_area;
-mod player;
-mod player_shot;
-mod scoreboard;
+mod app_state;
+mod in_game;
+mod menu;
 
-use crate::play_area::PlayAreaPlugin;
-use crate::scoreboard::ScoreBoardPlugin;
+use app_state::AppState;
 use bevy::prelude::*;
 
 pub struct GamePlugin;
@@ -25,15 +19,17 @@ impl Plugin for GamePlugin {
             resizable: false,
             ..Default::default()
         })
+        .insert_resource(ClearColor(Color::rgb(0., 0., 0.)))
+        .add_state(AppState::Menu)
         .add_plugins(DefaultPlugins)
-        .add_plugin(PlayAreaPlugin)
-        .add_plugin(ScoreBoardPlugin)
-        .add_plugin(game_frame_count::GameFrameCountPlugin)
-        .add_plugin(player::PlayerPlugin)
-        .add_plugin(player_shot::PlayerShotPlugin)
-        .add_plugin(enemy::EnemyPlugin)
-        .add_startup_system(setup_camera)
-        .add_system(destroy_enemy::destroy_enemy_system);
+        .add_plugin(menu::MenuPlugin)
+        .add_plugin(in_game::play_area::PlayAreaPlugin)
+        .add_plugin(in_game::scoreboard::ScoreBoardPlugin)
+        .add_plugin(in_game::player::PlayerPlugin)
+        .add_plugin(in_game::player_shot::PlayerShotPlugin)
+        .add_plugin(in_game::enemy::EnemyPlugin)
+        .add_plugin(in_game::destroy_enemy::DestroyEnemyPlugin)
+        .add_startup_system(setup_camera);
     }
 }
 

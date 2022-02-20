@@ -1,5 +1,5 @@
-use crate::enemy::barrage::bulletml_runner::BulletMLRunner;
-use crate::enemy::barrage::bulletml_runner::BulletMLRunnerData;
+use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunner;
+use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunnerData;
 use bevy::prelude::*;
 use bevy_bulletml::Runner;
 
