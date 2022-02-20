@@ -1,9 +1,20 @@
 use super::enemy::Enemy;
 use super::player_shot::Bullet as PlayerBullet;
+use crate::app_state::AppState;
 use crate::scoreboard::Score;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
-pub fn destroy_enemy_system(
+pub struct DestroyEnemyPlugin;
+
+impl Plugin for DestroyEnemyPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame).with_system(destroy_enemy_system),
+        );
+    }
+}
+
+fn destroy_enemy_system(
     mut commands: Commands,
     player_bullet_query: Query<(Entity, &PlayerBullet, &Transform)>,
     enemy_query: Query<(Entity, &Enemy, &Transform)>,

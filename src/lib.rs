@@ -33,10 +33,8 @@ impl Plugin for GamePlugin {
         .add_plugin(player::PlayerPlugin)
         .add_plugin(player_shot::PlayerShotPlugin)
         .add_plugin(enemy::EnemyPlugin)
-        .add_startup_system(setup_camera)
-        .add_system_set(
-            SystemSet::on_update(AppState::InGame).with_system(destroy_enemy::destroy_enemy_system),
-        );
+        .add_plugin(destroy_enemy::DestroyEnemyPlugin)
+        .add_startup_system(setup_camera);
     }
 }
 
