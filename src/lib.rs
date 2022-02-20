@@ -24,13 +24,7 @@ impl Plugin for GamePlugin {
         .add_state(AppState::Menu)
         .add_plugins(DefaultPlugins)
         .add_plugin(menu::MenuPlugin)
-        .add_plugin(in_game::play_area::PlayAreaPlugin)
-        .add_plugin(in_game::scoreboard::ScoreBoardPlugin)
-        .add_plugin(in_game::player::PlayerPlugin)
-        .add_plugin(in_game::player_shot::PlayerShotPlugin)
-        .add_plugin(in_game::enemy::EnemyPlugin)
-        .add_plugin(in_game::destroy_enemy::DestroyEnemyPlugin)
-        .add_plugin(in_game::player_stock::PlayerStockPlugin)
+        .add_plugin(in_game::InGamePlugin)
         .add_startup_system(setup_camera);
     }
 }
