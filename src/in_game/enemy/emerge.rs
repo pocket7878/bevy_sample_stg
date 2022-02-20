@@ -6,6 +6,7 @@ use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
 use crate::in_game::life_count::LifeCount;
 use crate::in_game::play_area::PlayAreaDescriptor;
+use crate::FPS;
 use bevy::prelude::*;
 use std::collections::HashMap;
 use std::fs::File;
@@ -50,7 +51,7 @@ struct EnemyEmergeTimer(Timer);
 
 impl Default for EnemyEmergeTimer {
     fn default() -> Self {
-        EnemyEmergeTimer(Timer::from_seconds(1.0 / 40.0, true))
+        EnemyEmergeTimer(Timer::from_seconds(1.0 / FPS, true))
     }
 }
 

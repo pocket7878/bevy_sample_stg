@@ -6,6 +6,7 @@ mod movement;
 mod system_label;
 
 use crate::app_state::AppState;
+pub use barrage::bullet::Bullet;
 use barrage::EnemyBarragePlugin;
 use bevy::prelude::*;
 use emerge::EnemyEmergePlugin;

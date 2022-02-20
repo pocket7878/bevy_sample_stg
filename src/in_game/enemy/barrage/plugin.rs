@@ -9,6 +9,7 @@ use crate::in_game::enemy::Enemy;
 use crate::in_game::life_count::LifeCount;
 use crate::in_game::play_area::PlayAreaDescriptor;
 use crate::in_game::player::Player;
+use crate::FPS;
 use bevy::prelude::*;
 use bevy_bulletml::BulletMLServer;
 use bevy_bulletml::Runner;
@@ -36,7 +37,7 @@ struct BulletFrameTimer(Timer);
 
 impl Default for BulletFrameTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(1.0 / 60.0, true)) // 60fps
+        Self(Timer::from_seconds(1.0 / FPS, true)) // 60fps
     }
 }
 

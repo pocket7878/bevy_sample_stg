@@ -15,15 +15,40 @@ impl Plugin for PlayerPlugin {
     }
 }
 
+pub enum PlayerState {
+    // 通常状態
+    Normal,
+    // 被弾して無敵状態
+    DamegedInvincible { rest_frame: i32 },
+}
+
 #[derive(Component)]
-pub struct Player;
+pub struct Player {
+    pub state: PlayerState,
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Player {
+            state: PlayerState::Normal,
+        }
+    }
+}
+
+pub struct PlayerAssets {
+    pub normal_state_handle: Handle<Image>,
+    pub damaged_state_handle: Handle<Image>,
+}
 
 fn setup(
     play_area: Res<PlayAreaDescriptor>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let rocket_asset_handle: Handle<Image> = asset_server.load("images/rocket.png");
+    let player_assets = PlayerAssets {
+        normal_state_handle: asset_server.load("images/rocket.png"),
+        damaged_state_handle: asset_server.load("images/damaged_rocket.png"),
+    };
 
     commands
         .spawn_bundle(SpriteBundle {
@@ -41,10 +66,12 @@ fn setup(
                 custom_size: Some(Vec2::new(1.0, 1.0)),
                 ..Default::default()
             },
-            texture: rocket_asset_handle,
+            texture: player_assets.normal_state_handle.clone(),
             ..Default::default()
         })
-        .insert(Player);
+        .insert(Player::default());
+
+    commands.insert_resource(player_assets);
 }
 
 fn move_player_by_keyboard_system(
