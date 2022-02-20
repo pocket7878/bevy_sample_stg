@@ -1,4 +1,4 @@
-mod bullet;
+pub mod bullet;
 mod bulletml_runner;
 pub mod configuration;
 mod plugin;

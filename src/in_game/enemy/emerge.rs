@@ -6,6 +6,7 @@ use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
 use crate::in_game::life_count::LifeCount;
 use crate::in_game::play_area::PlayAreaDescriptor;
+use crate::FPS;
 use bevy::prelude::*;
 use std::collections::HashMap;
 use std::fs::File;
@@ -26,7 +27,8 @@ impl Plugin for EnemyEmergePlugin {
                         count_up_enemy_emerge_frame_system.label(EnemySystemLabel::EmergeCount),
                     )
                     .with_system(emerge_enemy_system.before(EnemySystemLabel::EmergeCount)),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -50,7 +52,7 @@ struct EnemyEmergeTimer(Timer);
 
 impl Default for EnemyEmergeTimer {
     fn default() -> Self {
-        EnemyEmergeTimer(Timer::from_seconds(1.0 / 40.0, true))
+        EnemyEmergeTimer(Timer::from_seconds(1.0 / FPS, true))
     }
 }
 
@@ -65,6 +67,12 @@ fn setup(mut commands: Commands) {
     commands.insert_resource(enemy_emerge);
     commands.insert_resource(EnemyEmergeTimer::default());
     commands.insert_resource(EnemyEmergeFrameCount::default());
+}
+
+fn cleanup(mut commands: Commands) {
+    commands.remove_resource::<EnemyEmerge>();
+    commands.remove_resource::<EnemyEmergeTimer>();
+    commands.remove_resource::<EnemyEmergeFrameCount>();
 }
 
 fn count_up_enemy_emerge_frame_system(

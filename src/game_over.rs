@@ -1,4 +1,4 @@
-use crate::app_state::AppState;
+use crate::{app_state::AppState, in_game::scoreboard::Score};
 
 use bevy::prelude::*;
 
@@ -6,18 +6,17 @@ const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
-pub struct MenuPlugin;
+pub struct GameOverPlugin;
 
-impl Plugin for MenuPlugin {
+impl Plugin for GameOverPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
-            SystemSet::on_enter(AppState::Menu)
-                .with_system(setup_camera)
+            SystemSet::on_enter(AppState::GameOver)
                 .with_system(setup_title)
                 .with_system(setup_menu),
         )
-        .add_system_set(SystemSet::on_update(AppState::Menu).with_system(menu_system))
-        .add_system_set(SystemSet::on_exit(AppState::Menu).with_system(cleanup_menu));
+        .add_system_set(SystemSet::on_update(AppState::GameOver).with_system(menu_system))
+        .add_system_set(SystemSet::on_exit(AppState::GameOver).with_system(cleanup));
     }
 }
 
@@ -29,11 +28,10 @@ struct MenuData {
     button_entity: Entity,
 }
 
-fn setup_camera(mut commands: Commands) {
-    commands.spawn_bundle(UiCameraBundle::default());
-}
+#[derive(Component)]
+struct ScoreText;
 
-fn setup_title(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_title(mut commands: Commands, asset_server: Res<AssetServer>, score: Res<Score>) {
     let title_entity = commands
         .spawn_bundle(NodeBundle {
             style: Style {
@@ -55,28 +53,10 @@ fn setup_title(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent.spawn_bundle(TextBundle {
                 text: Text {
                     sections: vec![TextSection {
-                        value: "Bevy Sample STG\n".to_string(),
+                        value: "GAME OVER".to_string(),
                         style: TextStyle {
                             font: asset_server.load("fonts/x8y12pxTheStrongGamer.ttf"),
                             font_size: 40.0,
-                            color: Color::rgb(1., 1., 0.),
-                        },
-                    }],
-                    ..Default::default()
-                },
-                style: Style {
-                    align_self: AlignSelf::Center,
-                    ..Default::default()
-                },
-                ..Default::default()
-            });
-            parent.spawn_bundle(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: "by Pocket7878".to_string(),
-                        style: TextStyle {
-                            font: asset_server.load("fonts/x8y12pxTheStrongGamer.ttf"),
-                            font_size: 18.0,
                             color: Color::rgb(1., 1., 1.),
                         },
                     }],
@@ -88,6 +68,26 @@ fn setup_title(mut commands: Commands, asset_server: Res<AssetServer>) {
                 },
                 ..Default::default()
             });
+            parent
+                .spawn_bundle(TextBundle {
+                    text: Text {
+                        sections: vec![TextSection {
+                            value: format!("Score: {}", score.score),
+                            style: TextStyle {
+                                font: asset_server.load("fonts/x8y12pxTheStrongGamer.ttf"),
+                                font_size: 24.0,
+                                color: Color::rgb(1., 1., 1.),
+                            },
+                        }],
+                        ..Default::default()
+                    },
+                    style: Style {
+                        align_self: AlignSelf::Center,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(ScoreText);
         })
         .id();
     commands.insert_resource(TitleData { title_entity });
@@ -97,7 +97,7 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     let button_entity = commands
         .spawn_bundle(ButtonBundle {
             style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                size: Size::new(Val::Px(300.0), Val::Px(65.0)),
                 // center button
                 margin: Rect::all(Val::Auto),
                 // horizontally center child text
@@ -112,7 +112,7 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle {
                 text: Text::with_section(
-                    "Play",
+                    "Play Again",
                     TextStyle {
                         font: asset_server.load("fonts/x8y12pxTheStrongGamer.ttf"),
                         font_size: 40.0,
@@ -150,7 +150,8 @@ fn menu_system(
     }
 }
 
-fn cleanup_menu(mut commands: Commands, title_data: Res<TitleData>, menu_data: Res<MenuData>) {
+fn cleanup(mut commands: Commands, title_data: Res<TitleData>, menu_data: Res<MenuData>) {
     commands.entity(title_data.title_entity).despawn_recursive();
     commands.entity(menu_data.button_entity).despawn_recursive();
+    commands.remove_resource::<Score>();
 }
