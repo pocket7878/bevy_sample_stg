@@ -1,3 +1,4 @@
+use crate::app_state::AppState;
 use crate::play_area::PlayAreaDescriptor;
 use bevy::prelude::*;
 
@@ -7,8 +8,10 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup)
-            .add_system(move_player_by_keyboard_system);
+        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame).with_system(move_player_by_keyboard_system),
+            );
     }
 }
 

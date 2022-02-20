@@ -1,6 +1,6 @@
+mod app_state;
 mod destroy_enemy;
 mod enemy;
-mod game_frame_count;
 mod life_count;
 mod play_area;
 mod player;
@@ -9,6 +9,7 @@ mod scoreboard;
 
 use crate::play_area::PlayAreaPlugin;
 use crate::scoreboard::ScoreBoardPlugin;
+use app_state::AppState;
 use bevy::prelude::*;
 
 pub struct GamePlugin;
@@ -25,15 +26,17 @@ impl Plugin for GamePlugin {
             resizable: false,
             ..Default::default()
         })
+        .add_state(AppState::InGame)
         .add_plugins(DefaultPlugins)
         .add_plugin(PlayAreaPlugin)
         .add_plugin(ScoreBoardPlugin)
-        .add_plugin(game_frame_count::GameFrameCountPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(player_shot::PlayerShotPlugin)
         .add_plugin(enemy::EnemyPlugin)
         .add_startup_system(setup_camera)
-        .add_system(destroy_enemy::destroy_enemy_system);
+        .add_system_set(
+            SystemSet::on_update(AppState::InGame).with_system(destroy_enemy::destroy_enemy_system),
+        );
     }
 }
 

@@ -1,3 +1,4 @@
+use crate::app_state::AppState;
 use crate::enemy::assets_holder::EnemyAssetsHolder;
 use crate::enemy::barrage::configuration::BarrageConfiguration;
 use crate::enemy::movement::move_pattern::MovePattern;
@@ -10,25 +11,28 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::path;
 
+/*
+ * Plugin
+ */
 pub struct EnemyEmergePlugin;
 
 impl Plugin for EnemyEmergePlugin {
     fn build(&self, app: &mut App) {
-        let mut enemy_emerge = EnemyEmerge::default();
-        enemy_emerge
-            .load_file("data/stage/enemy.csv")
-            .expect("Faield to load enemy emerge data");
-
-        app.insert_resource(enemy_emerge)
-            .add_event::<EnemyEmergeFrameChangedEvent>()
-            .insert_resource(EnemyEmergeTimer::default())
-            .insert_resource(EnemyEmergeFrameCount::default())
-            .add_system(count_up_enemy_emerge_frame_system.label(EnemySystemLabel::EmergeCount))
-            .add_system(emerge_enemy_system.before(EnemySystemLabel::EmergeCount));
-        return;
+        app.add_event::<EnemyEmergeFrameChangedEvent>()
+            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(
+                        count_up_enemy_emerge_frame_system.label(EnemySystemLabel::EmergeCount),
+                    )
+                    .with_system(emerge_enemy_system.before(EnemySystemLabel::EmergeCount)),
+            );
     }
 }
 
+/*
+ * Components
+ */
 struct EnemyEmergeFrameCount {
     frame: i128,
 }
@@ -48,6 +52,19 @@ impl Default for EnemyEmergeTimer {
     fn default() -> Self {
         EnemyEmergeTimer(Timer::from_seconds(1.0 / 40.0, true))
     }
+}
+
+/*
+ * Systems
+ */
+fn setup(mut commands: Commands) {
+    let mut enemy_emerge = EnemyEmerge::default();
+    enemy_emerge
+        .load_file("data/stage/enemy.csv")
+        .expect("Faield to load enemy emerge data");
+    commands.insert_resource(enemy_emerge);
+    commands.insert_resource(EnemyEmergeTimer::default());
+    commands.insert_resource(EnemyEmergeFrameCount::default());
 }
 
 fn count_up_enemy_emerge_frame_system(

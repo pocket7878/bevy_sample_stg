@@ -1,3 +1,4 @@
+use crate::app_state::AppState;
 use crate::WINDOW_HEIGHT;
 use crate::WINDOW_WIDTH;
 use bevy::prelude::*;
@@ -7,8 +8,10 @@ pub struct ScoreBoardPlugin;
 impl Plugin for ScoreBoardPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Score::default())
-            .add_startup_system(setup_score_area)
-            .add_system(display_score_system);
+            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup_score_area))
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame).with_system(display_score_system),
+            );
     }
 }
 
