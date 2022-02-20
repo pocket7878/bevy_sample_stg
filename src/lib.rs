@@ -1,5 +1,6 @@
 mod app_state;
 mod in_game;
+mod menu;
 
 use app_state::AppState;
 use bevy::prelude::*;
@@ -18,8 +19,10 @@ impl Plugin for GamePlugin {
             resizable: false,
             ..Default::default()
         })
-        .add_state(AppState::InGame)
+        .insert_resource(ClearColor(Color::rgb(0., 0., 0.)))
+        .add_state(AppState::Menu)
         .add_plugins(DefaultPlugins)
+        .add_plugin(menu::MenuPlugin)
         .add_plugin(in_game::play_area::PlayAreaPlugin)
         .add_plugin(in_game::scoreboard::ScoreBoardPlugin)
         .add_plugin(in_game::player::PlayerPlugin)
