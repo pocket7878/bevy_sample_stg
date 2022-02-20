@@ -129,8 +129,8 @@ impl EnemyEmerge {
                         6 => MovePattern::RightBottom,
                         _ => panic!("Unsupported move type"),
                     },
-                    barrage_pattern: barrage_pattern,
-                    barrage_start_life_count: barrage_start_life_count,
+                    barrage_pattern,
+                    barrage_start_life_count,
                 })
         }
 

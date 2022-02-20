@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::WINDOW_WIDTH;
+
 use bevy::prelude::*;
 
 const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);

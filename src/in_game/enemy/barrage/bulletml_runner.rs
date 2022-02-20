@@ -36,7 +36,7 @@ impl AppRunner<BulletMLRunnerData, Bullet> for BulletMLRunner {
             result_deg += 360.0;
         }
 
-        return result_deg;
+        result_deg
     }
 
     fn get_bullet_speed(&self, _: &BulletMLRunnerData, bullet: &Bullet) -> f64 {
@@ -75,7 +75,7 @@ impl AppRunner<BulletMLRunnerData, Bullet> for BulletMLRunner {
         commands
             .spawn_bundle(SpriteBundle {
                 transform: Transform {
-                    translation: bullet_position.clone(),
+                    translation: *bullet_position,
                     scale: Vec3::new(5., 5., 5.),
                     ..Default::default()
                 },
@@ -107,7 +107,7 @@ impl AppRunner<BulletMLRunnerData, Bullet> for BulletMLRunner {
         commands
             .spawn_bundle(SpriteBundle {
                 transform: Transform {
-                    translation: bullet_position.clone(),
+                    translation: *bullet_position,
                     scale: Vec3::new(5., 5., 5.),
                     ..Default::default()
                 },
@@ -123,8 +123,8 @@ impl AppRunner<BulletMLRunnerData, Bullet> for BulletMLRunner {
                 vanished: false,
             })
             .insert(BulletType::WithRunner {
-                data: data.clone(),
-                runner: runner,
+                data: *data,
+                runner,
             });
     }
 }

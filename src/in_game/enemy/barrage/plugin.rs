@@ -163,5 +163,5 @@ fn build_bulletml_server() -> BulletMLServer {
         .load_file("triple", "data/barrage/triple.xml")
         .unwrap();
 
-    return bulletml_server;
+    bulletml_server
 }

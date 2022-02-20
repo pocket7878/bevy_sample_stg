@@ -50,6 +50,6 @@ fn update_enemy_velocity_system(
 	for (mut enemy, life_count, move_pattern) in query.iter_mut() {
 		move_pattern
 			.velocity_updater()
-			.update(&mut enemy, &life_count);
+			.update(&mut enemy, life_count);
 	}
 }

@@ -41,7 +41,7 @@ fn setup(
                 custom_size: Some(Vec2::new(1.0, 1.0)),
                 ..Default::default()
             },
-            texture: rocket_asset_handle.into(),
+            texture: rocket_asset_handle,
             ..Default::default()
         })
         .insert(Player);
