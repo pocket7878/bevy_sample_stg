@@ -1,14 +1,6 @@
 mod app_state;
-mod destroy_enemy;
-mod enemy;
-mod life_count;
-mod play_area;
-mod player;
-mod player_shot;
-mod scoreboard;
+mod in_game;
 
-use crate::play_area::PlayAreaPlugin;
-use crate::scoreboard::ScoreBoardPlugin;
 use app_state::AppState;
 use bevy::prelude::*;
 
@@ -28,12 +20,12 @@ impl Plugin for GamePlugin {
         })
         .add_state(AppState::InGame)
         .add_plugins(DefaultPlugins)
-        .add_plugin(PlayAreaPlugin)
-        .add_plugin(ScoreBoardPlugin)
-        .add_plugin(player::PlayerPlugin)
-        .add_plugin(player_shot::PlayerShotPlugin)
-        .add_plugin(enemy::EnemyPlugin)
-        .add_plugin(destroy_enemy::DestroyEnemyPlugin)
+        .add_plugin(in_game::play_area::PlayAreaPlugin)
+        .add_plugin(in_game::scoreboard::ScoreBoardPlugin)
+        .add_plugin(in_game::player::PlayerPlugin)
+        .add_plugin(in_game::player_shot::PlayerShotPlugin)
+        .add_plugin(in_game::enemy::EnemyPlugin)
+        .add_plugin(in_game::destroy_enemy::DestroyEnemyPlugin)
         .add_startup_system(setup_camera);
     }
 }

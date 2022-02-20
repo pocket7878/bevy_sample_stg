@@ -1,7 +1,7 @@
 use super::system_label::EnemySystemLabel;
 use crate::app_state::AppState;
-use crate::enemy::Enemy;
-use crate::life_count::LifeCount;
+use crate::in_game::enemy::Enemy;
+use crate::in_game::life_count::LifeCount;
 use bevy::prelude::*;
 
 pub struct EnemyLifeCountPlugin;

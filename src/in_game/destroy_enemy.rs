@@ -1,7 +1,7 @@
 use super::enemy::Enemy;
 use super::player_shot::Bullet as PlayerBullet;
 use crate::app_state::AppState;
-use crate::scoreboard::Score;
+use crate::in_game::scoreboard::Score;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 pub struct DestroyEnemyPlugin;

@@ -1,5 +1,5 @@
 use crate::app_state::AppState;
-use crate::play_area::PlayAreaDescriptor;
+use crate::in_game::play_area::PlayAreaDescriptor;
 use bevy::prelude::*;
 
 const PLAYER_SIZE: f32 = 30.0;

@@ -7,7 +7,7 @@ mod left_bottom;
 mod right_bottom;
 
 use super::Enemy;
-use crate::life_count::LifeCount;
+use crate::in_game::life_count::LifeCount;
 use bevy::prelude::*;
 use rand::prelude::*;
 

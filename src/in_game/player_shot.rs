@@ -1,6 +1,6 @@
 use super::player::Player;
 use crate::app_state::AppState;
-use crate::play_area::PlayAreaDescriptor;
+use crate::in_game::play_area::PlayAreaDescriptor;
 use bevy::prelude::*;
 
 const BULLET_SIZE: f32 = 15.0;

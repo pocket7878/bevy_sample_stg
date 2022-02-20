@@ -1,5 +1,5 @@
 use super::{Enemy, VelocityUpdater};
-use crate::life_count::LifeCount;
+use crate::in_game::life_count::LifeCount;
 use bevy::prelude::*;
 
 pub struct RightBottomPatternVelocityUpdater;
