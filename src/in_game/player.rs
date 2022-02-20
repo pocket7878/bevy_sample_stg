@@ -11,7 +11,8 @@ impl Plugin for PlayerPlugin {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(AppState::InGame).with_system(move_player_by_keyboard_system),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -72,6 +73,11 @@ fn setup(
         .insert(Player::default());
 
     commands.insert_resource(player_assets);
+}
+
+fn cleanup(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+    let player_entity = player_query.single();
+    commands.entity(player_entity).despawn_recursive();
 }
 
 fn move_player_by_keyboard_system(

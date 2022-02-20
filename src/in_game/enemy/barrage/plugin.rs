@@ -18,15 +18,16 @@ pub struct EnemyBarragePlugin;
 
 impl Plugin for EnemyBarragePlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup));
-        app.add_system_set(
-            SystemSet::on_update(AppState::InGame)
-                .with_system(start_barrage_system.before(EnemySystemLabel::LifeCount))
-                .with_system(move_enemy_bullet_system)
-                .with_system(despawn_bullet_system)
-                .with_system(move_enemy_bullet_system)
-                .with_system(update_bullet_system),
-        );
+        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
+            .add_system_set(
+                SystemSet::on_update(AppState::InGame)
+                    .with_system(start_barrage_system.before(EnemySystemLabel::LifeCount))
+                    .with_system(move_enemy_bullet_system)
+                    .with_system(despawn_bullet_system)
+                    .with_system(move_enemy_bullet_system)
+                    .with_system(update_bullet_system),
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -49,6 +50,14 @@ fn setup(mut commands: Commands) {
     let bullet_ml_server = build_bulletml_server();
     commands.insert_resource(bullet_ml_server);
     commands.insert_resource(BulletFrameTimer::default());
+}
+
+fn cleanup(mut commands: Commands, query: Query<Entity, With<Bullet>>) {
+    commands.remove_resource::<BulletMLServer>();
+    commands.remove_resource::<BulletFrameTimer>();
+    for e in query.iter() {
+        commands.entity(e).despawn_recursive();
+    }
 }
 
 fn move_enemy_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {

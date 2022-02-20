@@ -15,7 +15,8 @@ impl Plugin for PlayerShotPlugin {
                 .with_system(repeat_player_shot_by_timer_system)
                 .with_system(destroy_player_bullet_go_outside_system)
                 .with_system(move_player_bullet_system),
-        );
+        )
+        .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -30,6 +31,13 @@ struct ShotPlayerBulletTimer(Timer);
 /*
  * System
  */
+fn cleanup(mut commands: Commands, player_bullet_query: Query<Entity, With<Bullet>>) {
+    commands.remove_resource::<ShotPlayerBulletTimer>();
+    for bullet_entity in player_bullet_query.iter() {
+        commands.entity(bullet_entity).despawn_recursive();
+    }
+}
+
 fn shot_player_bullet_by_keyboard_system(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,

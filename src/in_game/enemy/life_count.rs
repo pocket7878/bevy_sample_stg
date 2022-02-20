@@ -14,7 +14,8 @@ impl Plugin for EnemyLifeCountPlugin {
                 SystemSet::on_update(AppState::InGame).with_system(
                     count_up_enemy_life_count_system.label(EnemySystemLabel::LifeCount),
                 ),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -28,6 +29,10 @@ impl Default for EnemyLifeCountTimer {
 
 fn setup(mut commands: Commands) {
     commands.insert_resource(EnemyLifeCountTimer::default())
+}
+
+fn cleanup(mut commands: Commands) {
+    commands.remove_resource::<EnemyLifeCountTimer>()
 }
 
 fn count_up_enemy_life_count_system(

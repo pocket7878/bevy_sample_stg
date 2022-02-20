@@ -16,7 +16,8 @@ impl Plugin for EnemyMovementPlugin {
                 SystemSet::on_update(AppState::InGame)
                     .with_system(move_enemy_system)
                     .with_system(update_enemy_velocity_system.before(EnemySystemLabel::LifeCount)),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -30,6 +31,10 @@ impl Default for EnemyMoveTimer {
 
 fn setup(mut commands: Commands) {
     commands.insert_resource(EnemyMoveTimer::default());
+}
+
+fn cleanup(mut commands: Commands) {
+    commands.remove_resource::<EnemyMoveTimer>();
 }
 
 fn move_enemy_system(

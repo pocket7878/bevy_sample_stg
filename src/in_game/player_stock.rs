@@ -19,7 +19,8 @@ impl Plugin for PlayerStockPlugin {
                 SystemSet::on_update(AppState::InGame)
                     .with_system(hit_enemy_bullet_system)
                     .with_system(decrease_damaged_invincible_frame_system),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -36,7 +37,12 @@ fn setup(mut commands: Commands) {
     commands.insert_resource(DamagedInvincibleTimer::default())
 }
 
+fn cleanup(mut commands: Commands) {
+    commands.remove_resource::<DamagedInvincibleTimer>();
+}
+
 fn hit_enemy_bullet_system(
+    mut state: ResMut<State<AppState>>,
     player_assets: Res<PlayerAssets>,
     mut score: ResMut<Score>,
     enemy_bullet_query: Query<&Transform, With<EnemyBullet>>,
@@ -60,7 +66,7 @@ fn hit_enemy_bullet_system(
                         };
                         *sprite_handle = player_assets.damaged_state_handle.clone();
                     } else {
-                        // TODO: Game Over
+                        state.set(AppState::GameOver).unwrap();
                     }
                     // 連続被弾はしない
                     break;

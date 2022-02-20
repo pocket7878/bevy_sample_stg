@@ -27,7 +27,8 @@ impl Plugin for EnemyEmergePlugin {
                         count_up_enemy_emerge_frame_system.label(EnemySystemLabel::EmergeCount),
                     )
                     .with_system(emerge_enemy_system.before(EnemySystemLabel::EmergeCount)),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -66,6 +67,12 @@ fn setup(mut commands: Commands) {
     commands.insert_resource(enemy_emerge);
     commands.insert_resource(EnemyEmergeTimer::default());
     commands.insert_resource(EnemyEmergeFrameCount::default());
+}
+
+fn cleanup(mut commands: Commands) {
+    commands.remove_resource::<EnemyEmerge>();
+    commands.remove_resource::<EnemyEmergeTimer>();
+    commands.remove_resource::<EnemyEmergeFrameCount>();
 }
 
 fn count_up_enemy_emerge_frame_system(

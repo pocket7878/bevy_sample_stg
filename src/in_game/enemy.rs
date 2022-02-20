@@ -21,7 +21,8 @@ impl Plugin for EnemyPlugin {
             .add_plugin(EnemyEmergePlugin)
             .add_plugin(EnemyMovementPlugin)
             .add_plugin(EnemyLifeCountPlugin)
-            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup));
+            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
@@ -39,4 +40,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         yellow: asset_server.load("images/yellow_alien.png"),
     };
     commands.insert_resource(assets_holder);
+}
+
+fn cleanup(mut commands: Commands, query: Query<Entity, With<Enemy>>) {
+    for e in query.iter() {
+        commands.entity(e).despawn_recursive();
+    }
 }
