@@ -6,10 +6,10 @@ use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunnerData;
 use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
 use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
+use crate::in_game::game_frame::GameFrame;
 use crate::in_game::life_count::LifeCount;
 use crate::in_game::play_area::PlayAreaDescriptor;
 use crate::in_game::player::Player;
-use crate::FPS;
 use bevy::prelude::*;
 use bevy_bulletml::BulletMLServer;
 use bevy_bulletml::Runner;
@@ -32,37 +32,29 @@ impl Plugin for EnemyBarragePlugin {
 }
 
 /*
- * Component
- */
-struct BulletFrameTimer(Timer);
-
-impl Default for BulletFrameTimer {
-    fn default() -> Self {
-        Self(Timer::from_seconds(1.0 / FPS, true)) // 60fps
-    }
-}
-
-/*
  * System
  */
 
 fn setup(mut commands: Commands) {
     let bullet_ml_server = build_bulletml_server();
     commands.insert_resource(bullet_ml_server);
-    commands.insert_resource(BulletFrameTimer::default());
 }
 
 fn cleanup(mut commands: Commands, query: Query<Entity, With<Bullet>>) {
     commands.remove_resource::<BulletMLServer>();
-    commands.remove_resource::<BulletFrameTimer>();
     for e in query.iter() {
         commands.entity(e).despawn_recursive();
     }
 }
 
-fn move_enemy_bullet_system(mut query: Query<(&Bullet, &mut Transform)>) {
-    for (bullet, mut transform) in query.iter_mut() {
-        bullet.update(&mut transform);
+fn move_enemy_bullet_system(
+    game_frame: Res<GameFrame>,
+    mut query: Query<(&Bullet, &mut Transform)>,
+) {
+    if game_frame.is_changed() && game_frame.0 > 0 {
+        for (bullet, mut transform) in query.iter_mut() {
+            bullet.update(&mut transform);
+        }
     }
 }
 
@@ -98,13 +90,12 @@ fn start_barrage_system(
 }
 
 fn update_bullet_system(
+    game_frame: Res<GameFrame>,
     mut commands: Commands,
-    time: Res<Time>,
-    mut timer: ResMut<BulletFrameTimer>,
     mut bullet_query: Query<(&mut Bullet, &mut Transform, &mut BulletType), Without<Player>>,
     ship_query: Query<(&Player, &Transform), Without<Bullet>>,
 ) {
-    if !timer.0.tick(time.delta()).just_finished() {
+    if !game_frame.is_changed() {
         return;
     }
 
