@@ -12,11 +12,12 @@ impl Plugin for GameFramePlugin {
                 SystemSet::on_update(AppState::InGame)
                     .with_system(update_game_frame_system)
                     .label(GameSystemLabel::GameFrameUpdate),
-            );
+            )
+            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
-struct GameFrame(i128);
+pub struct GameFrame(pub i128);
 
 impl Default for GameFrame {
     fn default() -> Self {
@@ -34,6 +35,12 @@ impl Default for GameFrameTimer {
 
 fn setup(mut commands: Commands) {
     commands.insert_resource(GameFrame::default());
+    commands.insert_resource(GameFrameTimer::default());
+}
+
+fn cleanup(mut commands: Commands) {
+    commands.remove_resource::<GameFrameTimer>();
+    commands.remove_resource::<GameFrame>();
 }
 
 fn update_game_frame_system(

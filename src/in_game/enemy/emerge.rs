@@ -4,9 +4,10 @@ use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
 use crate::in_game::enemy::movement::move_pattern::MovePattern;
 use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
+use crate::in_game::game_frame::GameFrame;
 use crate::in_game::life_count::LifeCount;
 use crate::in_game::play_area::PlayAreaDescriptor;
-use crate::FPS;
+use crate::in_game::system_label::GameSystemLabel;
 use bevy::prelude::*;
 use std::collections::HashMap;
 use std::fs::File;
@@ -19,40 +20,12 @@ pub struct EnemyEmergePlugin;
 
 impl Plugin for EnemyEmergePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<EnemyEmergeFrameChangedEvent>()
-            .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
+        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(AppState::InGame)
-                    .with_system(
-                        count_up_enemy_emerge_frame_system.label(EnemySystemLabel::EmergeCount),
-                    )
-                    .with_system(emerge_enemy_system.before(EnemySystemLabel::EmergeCount)),
+                    .with_system(emerge_enemy_system.before(GameSystemLabel::GameFrameUpdate)),
             )
             .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
-    }
-}
-
-/*
- * Components
- */
-struct EnemyEmergeFrameCount {
-    frame: i128,
-}
-
-impl Default for EnemyEmergeFrameCount {
-    fn default() -> Self {
-        EnemyEmergeFrameCount { frame: 0 }
-    }
-}
-
-struct EnemyEmergeFrameChangedEvent(i128);
-
-// Count and notify enemy emerge frame changed.
-struct EnemyEmergeTimer(Timer);
-
-impl Default for EnemyEmergeTimer {
-    fn default() -> Self {
-        EnemyEmergeTimer(Timer::from_seconds(1.0 / FPS, true))
     }
 }
 
@@ -65,27 +38,10 @@ fn setup(mut commands: Commands) {
         .load_file("data/stage/enemy.csv")
         .expect("Faield to load enemy emerge data");
     commands.insert_resource(enemy_emerge);
-    commands.insert_resource(EnemyEmergeTimer::default());
-    commands.insert_resource(EnemyEmergeFrameCount::default());
 }
 
 fn cleanup(mut commands: Commands) {
     commands.remove_resource::<EnemyEmerge>();
-    commands.remove_resource::<EnemyEmergeTimer>();
-    commands.remove_resource::<EnemyEmergeFrameCount>();
-}
-
-fn count_up_enemy_emerge_frame_system(
-    mut ev_emerge_frame_changed: EventWriter<EnemyEmergeFrameChangedEvent>,
-    mut count: ResMut<EnemyEmergeFrameCount>,
-    time: Res<Time>,
-    mut timer: ResMut<EnemyEmergeTimer>,
-) {
-    if !timer.0.tick(time.delta()).just_finished() {
-        return;
-    }
-    count.frame += 1;
-    ev_emerge_frame_changed.send(EnemyEmergeFrameChangedEvent(count.frame));
 }
 
 #[derive(Debug)]
@@ -183,13 +139,18 @@ impl EnemyEmerge {
 }
 
 fn emerge_enemy_system(
+    game_frame: Res<GameFrame>,
     mut commands: Commands,
     emerger: Res<EnemyEmerge>,
-    mut ev_emerge_frame_changed: EventReader<EnemyEmergeFrameChangedEvent>,
     play_area_descripter: Res<PlayAreaDescriptor>,
     assets_holder: Res<EnemyAssetsHolder>,
 ) {
-    for ev in ev_emerge_frame_changed.iter() {
-        emerger.emerge(ev.0, &mut commands, &play_area_descripter, &assets_holder);
+    if game_frame.is_changed() {
+        emerger.emerge(
+            game_frame.0,
+            &mut commands,
+            &play_area_descripter,
+            &assets_holder,
+        );
     }
 }

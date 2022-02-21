@@ -1,4 +1,6 @@
 use super::enemy::Bullet as EnemyBullet;
+use super::game_frame::GameFrame;
+use super::system_label::GameSystemLabel;
 use crate::app_state::AppState;
 use crate::in_game::player::Player;
 use crate::in_game::player::PlayerAssets;
@@ -14,31 +16,13 @@ pub struct PlayerStockPlugin;
 
 impl Plugin for PlayerStockPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
-            .add_system_set(
-                SystemSet::on_update(AppState::InGame)
-                    .with_system(hit_enemy_bullet_system)
-                    .with_system(decrease_damaged_invincible_frame_system),
-            )
-            .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
+        app.add_system_set(
+            SystemSet::on_update(AppState::InGame)
+                .with_system(hit_enemy_bullet_system)
+                .with_system(decrease_damaged_invincible_frame_system)
+                .before(GameSystemLabel::GameFrameUpdate),
+        );
     }
-}
-
-// Count and notify enemy emerge frame changed.
-struct DamagedInvincibleTimer(Timer);
-
-impl Default for DamagedInvincibleTimer {
-    fn default() -> Self {
-        Self(Timer::from_seconds(1.0 / FPS, true))
-    }
-}
-
-fn setup(mut commands: Commands) {
-    commands.insert_resource(DamagedInvincibleTimer::default())
-}
-
-fn cleanup(mut commands: Commands) {
-    commands.remove_resource::<DamagedInvincibleTimer>();
 }
 
 fn hit_enemy_bullet_system(
@@ -81,12 +65,11 @@ fn hit_enemy_bullet_system(
 }
 
 fn decrease_damaged_invincible_frame_system(
+    game_frame: Res<GameFrame>,
     player_assets: Res<PlayerAssets>,
-    time: Res<Time>,
-    mut timer: ResMut<DamagedInvincibleTimer>,
     mut player_query: Query<(&mut Player, &mut Handle<Image>), With<Player>>,
 ) {
-    if !timer.0.tick(time.delta()).just_finished() {
+    if !game_frame.is_changed() {
         return;
     }
 
