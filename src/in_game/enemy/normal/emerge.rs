@@ -1,8 +1,7 @@
+use super::movement::MovePattern;
 use crate::app_state::AppState;
 use crate::in_game::enemy::assets_holder::EnemyAssetsHolder;
 use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
-use crate::in_game::enemy::movement::move_pattern::MovePattern;
-use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
 use crate::in_game::game_frame::GameFrame;
 use crate::in_game::life_count::LifeCount;
@@ -16,9 +15,9 @@ use std::path;
 /*
  * Plugin
  */
-pub struct EnemyEmergePlugin;
+pub struct NormalEnemyEmergePlugin;
 
-impl Plugin for EnemyEmergePlugin {
+impl Plugin for NormalEnemyEmergePlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(

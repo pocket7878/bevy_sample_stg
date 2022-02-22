@@ -1,16 +1,17 @@
-pub mod move_pattern;
-use super::system_label::EnemySystemLabel;
+mod move_pattern;
+
+pub use self::move_pattern::MovePattern;
 use crate::app_state::AppState;
+use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
 use crate::in_game::game_frame::GameFrame;
 use crate::in_game::life_count::LifeCount;
 use crate::in_game::system_label::GameSystemLabel;
 use bevy::prelude::*;
-use move_pattern::MovePattern;
 
-pub struct EnemyMovementPlugin;
+pub struct NormalEnemyMovementPlugin;
 
-impl Plugin for EnemyMovementPlugin {
+impl Plugin for NormalEnemyMovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(AppState::InGame)
