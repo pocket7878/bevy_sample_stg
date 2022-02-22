@@ -32,6 +32,7 @@ fn hit_enemy_bullet_system(
     enemy_bullet_query: Query<&Transform, With<EnemyBullet>>,
     mut player_query: Query<(&Transform, &mut Player, &mut Handle<Image>)>,
 ) {
+    /*
     let (player_transform, mut player, mut sprite_handle) = player_query.single_mut();
     match player.state {
         PlayerState::Normal => {
@@ -62,6 +63,7 @@ fn hit_enemy_bullet_system(
             return;
         }
     }
+    */
 }
 
 fn decrease_damaged_invincible_frame_system(

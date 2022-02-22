@@ -9,15 +9,13 @@ use crate::in_game::play_area::PlayAreaDescriptor;
 use crate::in_game::system_label::GameSystemLabel;
 use bevy::prelude::*;
 use std::collections::HashMap;
-use std::fs::File;
-use std::path;
 
 /*
  * Plugin
  */
-pub struct NormalEnemyEmergePlugin;
+pub struct BossEnemyEmergePlugin;
 
-impl Plugin for NormalEnemyEmergePlugin {
+impl Plugin for BossEnemyEmergePlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(
@@ -32,10 +30,7 @@ impl Plugin for NormalEnemyEmergePlugin {
  * Systems
  */
 fn setup(mut commands: Commands) {
-    let mut enemy_emerge = EnemyEmerge::default();
-    enemy_emerge
-        .load_file("data/stage/enemy.csv")
-        .expect("Faield to load enemy emerge data");
+    let enemy_emerge = EnemyEmerge::new();
     commands.insert_resource(enemy_emerge);
 }
 
@@ -47,17 +42,21 @@ fn cleanup(mut commands: Commands) {
 struct Emerge {
     initial_position: Vec3,
     move_pattern: MovePattern,
-    barrage_pattern: String,
-    barrage_start_life_count: i128,
+    barrage_configuration: BarrageConfiguration,
 }
 
 impl Emerge {
-    fn build_barrage_configuration(&self) -> BarrageConfiguration {
-        let mut barrage_configuration = BarrageConfiguration::new();
-        barrage_configuration
-            .insert_barrage_type(self.barrage_start_life_count, &self.barrage_pattern);
+    fn new(initial_position: Vec3, move_pattern: MovePattern) -> Self {
+        Self {
+            initial_position,
+            move_pattern,
+            barrage_configuration: BarrageConfiguration::new(),
+        }
+    }
 
-        barrage_configuration
+    fn set_barrage_pattern_for_life_count(&mut self, life_count: i128, barrage_pattern: &str) {
+        self.barrage_configuration
+            .insert_barrage_type(life_count, barrage_pattern);
     }
 }
 
@@ -65,49 +64,16 @@ struct EnemyEmerge {
     emerge_map: HashMap<i128, Vec<Emerge>>,
 }
 
-impl Default for EnemyEmerge {
-    fn default() -> Self {
-        EnemyEmerge {
-            emerge_map: HashMap::new(),
-        }
-    }
-}
-
 impl EnemyEmerge {
-    fn load_file<P: AsRef<path::Path>>(&mut self, file_path: P) -> Result<(), anyhow::Error> {
-        let file = File::open(file_path)?;
-        let mut rdr = csv::ReaderBuilder::new()
-            .has_headers(true)
-            .from_reader(file);
-        for result in rdr.records() {
-            let record = result?;
-            let apper_frame = record[0].parse::<i128>()?;
-            let init_x = record[1].parse::<f32>()?;
-            let init_y = record[2].parse::<f32>()?;
-            let move_pattern_index = record[3].parse::<i32>()?;
-            let barrage_pattern = record[4].to_string();
-            let barrage_start_life_count = record[5].parse::<i128>()?;
-            self.emerge_map
-                .entry(apper_frame)
-                .or_insert_with(Vec::new)
-                .push(Emerge {
-                    initial_position: Vec3::new(init_x, init_y, 0.0),
-                    move_pattern: match move_pattern_index {
-                        0 => MovePattern::DownStayUp,
-                        1 => MovePattern::DownStayLeftBottom,
-                        2 => MovePattern::DownStayRightBottom,
-                        3 => MovePattern::FastDownLeft,
-                        4 => MovePattern::FastDownRight,
-                        5 => MovePattern::LeftBottom,
-                        6 => MovePattern::RightBottom,
-                        _ => panic!("Unsupported move type"),
-                    },
-                    barrage_pattern,
-                    barrage_start_life_count,
-                })
-        }
-
-        Ok(())
+    fn new() -> Self {
+        let mut emerge_map = HashMap::new();
+        let mut boss1_emerge = Emerge::new(Vec3::new(0.0, -999.9, 0.0), MovePattern::Boss1);
+        boss1_emerge.set_barrage_pattern_for_life_count(120, "boss1_first_wave");
+        boss1_emerge.set_barrage_pattern_for_life_count(565, "boss1_second_wave");
+        boss1_emerge.set_barrage_pattern_for_life_count(1065, "boss1_first_wave");
+        boss1_emerge.set_barrage_pattern_for_life_count(1570, "boss1_second_wave");
+        emerge_map.insert(500i128, vec![boss1_emerge]);
+        EnemyEmerge { emerge_map }
     }
 
     fn emerge(
@@ -132,12 +98,12 @@ impl EnemyEmerge {
                             scale: enemy_size,
                             ..Default::default()
                         },
-                        texture: assets_holder.blue.clone(),
+                        texture: assets_holder.pink.clone(),
                         ..Default::default()
                     })
                     .insert(Enemy::default())
                     .insert(LifeCount::default())
-                    .insert(emerge.build_barrage_configuration())
+                    .insert(emerge.barrage_configuration.clone())
                     .insert(emerge.move_pattern.clone());
             }
         }

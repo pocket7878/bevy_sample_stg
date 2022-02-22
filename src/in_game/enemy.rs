@@ -1,5 +1,6 @@
 mod assets_holder;
 mod barrage;
+mod boss;
 mod life_count;
 mod normal;
 mod system_label;
@@ -17,6 +18,8 @@ impl Plugin for EnemyPlugin {
         app.add_plugin(EnemyBarragePlugin)
             .add_plugin(normal::NormalEnemyEmergePlugin)
             .add_plugin(normal::NormalEnemyMovementPlugin)
+            .add_plugin(boss::BossEnemyEmergePlugin)
+            .add_plugin(boss::BossEnemyMovementPlugin)
             .add_plugin(EnemyLifeCountPlugin)
             .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
