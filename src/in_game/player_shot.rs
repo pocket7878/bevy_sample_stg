@@ -28,6 +28,12 @@ pub struct Bullet;
 
 struct ShotPlayerBulletTimer(Timer);
 
+impl ShotPlayerBulletTimer {
+    pub fn new() -> Self {
+        Self(Timer::from_seconds(1.0 / 10.0, true))
+    }
+}
+
 /*
  * System
  */
@@ -95,10 +101,7 @@ fn destroy_player_bullet_go_outside_system(
  * Utils
  */
 fn start_repeat_player_bullet_shot_timer(commands: &mut Commands) {
-    commands.insert_resource(ShotPlayerBulletTimer(Timer::new(
-        std::time::Duration::from_millis(400),
-        true,
-    )));
+    commands.insert_resource(ShotPlayerBulletTimer::new());
 }
 
 fn stop_repeat_player_bullet_shot_timer(commands: &mut Commands) {

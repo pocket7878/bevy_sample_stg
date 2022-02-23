@@ -26,9 +26,23 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct Enemy {
     pub velocity: Vec3,
+    pub hp: i32,
+    pub bonus_score: i32,
+    pub is_boss_enemy: bool,
+}
+
+impl Default for Enemy {
+    fn default() -> Self {
+        Self {
+            velocity: Vec3::new(0.0, 0.0, 0.0),
+            hp: 1,
+            bonus_score: 100,
+            is_boss_enemy: false,
+        }
+    }
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {

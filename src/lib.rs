@@ -1,4 +1,5 @@
 mod app_state;
+mod ending;
 mod game_over;
 mod in_game;
 mod menu;
@@ -27,6 +28,7 @@ impl Plugin for GamePlugin {
         .add_plugin(menu::MenuPlugin)
         .add_plugin(in_game::InGamePlugin)
         .add_plugin(game_over::GameOverPlugin)
+        .add_plugin(ending::EndingPlugin)
         .add_startup_system(setup_camera);
     }
 }

@@ -9,18 +9,6 @@
 			<bulletRef label="wave">
 				<param>36.4</param>
 				<param>144</param>
-				<param>20</param>
-				<param>10</param>
-			</bulletRef>
-		</fire>
-		<fire>
-			<direction type="absolute">180</direction>
-			<speed>0</speed>
-			<bulletRef label="wave">
-				<param>-36.1</param>
-				<param>144</param>
-				<param>10</param>
-				<param>20</param>
 			</bulletRef>
 		</fire>
 	</action>
@@ -33,7 +21,7 @@
 				<bulletRef label="dummy" />
 			</fire>
 			<repeat>
-				<times>$4</times>
+				<times>100</times>
 				<action>
 					<repeat>
 						<times>10</times>
@@ -45,7 +33,7 @@
 							</fire>
 						</action>
 					</repeat>
-					<wait>$3</wait>
+					<wait>4</wait>
 				</action>
 			</repeat>
 			<vanish />

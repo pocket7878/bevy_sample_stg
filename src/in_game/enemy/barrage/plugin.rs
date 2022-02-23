@@ -2,8 +2,7 @@ use super::bullet::Bullet;
 use super::BarrageStarter;
 use crate::app_state::AppState;
 use crate::in_game::enemy::barrage::bullet::BulletType;
-use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunner;
-use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunnerData;
+
 use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
 use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
@@ -13,7 +12,7 @@ use crate::in_game::play_area::PlayAreaDescriptor;
 use crate::in_game::player::Player;
 use bevy::prelude::*;
 use bevy_bulletml::BulletMLServer;
-use bevy_bulletml::Runner;
+
 use std::fs;
 use std::path::PathBuf;
 

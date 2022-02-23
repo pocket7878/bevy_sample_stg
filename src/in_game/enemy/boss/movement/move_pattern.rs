@@ -20,7 +20,7 @@ pub trait ActionCalculater {
 impl MovePattern {
     pub fn action_calculater(&self) -> Box<dyn ActionCalculater> {
         match self {
-            Self::Boss1 => Box::new(boss1::Boss1ActionCalculater),
+            Self::Boss1 => Box::new(boss1::Boss1ActionCalculater::new()),
         }
     }
 }

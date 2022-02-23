@@ -35,7 +35,7 @@ impl BarrageStarter for Commands<'_, '_> {
                 })
                 .insert(BulletType::WithRunner {
                     data: BulletMLRunnerData::default(),
-                    runner: Runner::new(BulletMLRunner, bml.clone()),
+                    runner: Runner::new(BulletMLRunner, bml),
                 });
             Ok(())
         } else {

@@ -3,16 +3,16 @@
  */
 use bevy::prelude::*;
 
-pub fn easing_vec3_linear_interpolation(t: f32, b: Vec3, c: Vec3, d: f32) -> Vec3 {
+pub fn easing_vec3_linear_interpolation(t: f32, b: &Vec3, c: &Vec3, d: f32) -> Vec3 {
     interpolate_vec3(t, b, c, d, easing_linear_interpolation)
 }
 
-pub fn easing_vec3_ease_in_out_interpolation(t: f32, b: Vec3, c: Vec3, d: f32) -> Vec3 {
+pub fn easing_vec3_ease_in_out_interpolation(t: f32, b: &Vec3, c: &Vec3, d: f32) -> Vec3 {
     interpolate_vec3(t, b, c, d, easing_ease_in_out_interpolation)
 }
 
 /* f32の補完の関数をVec3の各要素に適用する */
-fn interpolate_vec3<F>(t: f32, b: Vec3, c: Vec3, d: f32, interpolate_function: F) -> Vec3
+fn interpolate_vec3<F>(t: f32, b: &Vec3, c: &Vec3, d: f32, interpolate_function: F) -> Vec3
 where
     F: Fn(f32, f32, f32, f32) -> f32,
 {

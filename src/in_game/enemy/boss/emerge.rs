@@ -1,7 +1,7 @@
 use super::movement::MovePattern;
 use crate::app_state::AppState;
 use crate::in_game::enemy::assets_holder::EnemyAssetsHolder;
-use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
+
 use crate::in_game::enemy::Enemy;
 use crate::in_game::game_frame::GameFrame;
 use crate::in_game::life_count::LifeCount;
@@ -41,13 +41,17 @@ fn cleanup(mut commands: Commands) {
 #[derive(Debug)]
 struct Emerge {
     initial_position: Vec3,
+    hp: i32,
+    bonus_score: i32,
     move_pattern: MovePattern,
 }
 
 impl Emerge {
-    fn new(initial_position: Vec3, move_pattern: MovePattern) -> Self {
+    fn new(initial_position: Vec3, hp: i32, bonus_score: i32, move_pattern: MovePattern) -> Self {
         Self {
             initial_position,
+            hp,
+            bonus_score,
             move_pattern,
         }
     }
@@ -60,7 +64,7 @@ struct EnemyEmerge {
 impl EnemyEmerge {
     fn new() -> Self {
         let mut emerge_map = HashMap::new();
-        let boss1_emerge = Emerge::new(Vec3::new(0.0, -999.9, 0.0), MovePattern::Boss1);
+        let boss1_emerge = Emerge::new(Vec3::new(0.0, -999.9, 0.0), 100, 500, MovePattern::Boss1);
         emerge_map.insert(500i128, vec![boss1_emerge]);
         EnemyEmerge { emerge_map }
     }
@@ -90,7 +94,12 @@ impl EnemyEmerge {
                         texture: assets_holder.pink.clone(),
                         ..Default::default()
                     })
-                    .insert(Enemy::default())
+                    .insert(Enemy {
+                        hp: emerge.hp,
+                        bonus_score: emerge.bonus_score,
+                        is_boss_enemy: true,
+                        ..Default::default()
+                    })
                     .insert(LifeCount::default())
                     .insert(emerge.move_pattern.clone());
             }
