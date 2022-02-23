@@ -1,34 +1,48 @@
 mod assets_holder;
 mod barrage;
-mod emerge;
+mod boss;
 mod life_count;
-mod movement;
+mod normal;
 mod system_label;
 
 use crate::app_state::AppState;
 pub use barrage::bullet::Bullet;
 use barrage::EnemyBarragePlugin;
 use bevy::prelude::*;
-use emerge::EnemyEmergePlugin;
 use life_count::EnemyLifeCountPlugin;
-use movement::EnemyMovementPlugin;
 
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(EnemyBarragePlugin)
-            .add_plugin(EnemyEmergePlugin)
-            .add_plugin(EnemyMovementPlugin)
+            .add_plugin(normal::NormalEnemyEmergePlugin)
+            .add_plugin(normal::NormalEnemyMovementPlugin)
+            .add_plugin(boss::BossEnemyEmergePlugin)
+            .add_plugin(boss::BossEnemyMovementPlugin)
             .add_plugin(EnemyLifeCountPlugin)
             .add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(SystemSet::on_exit(AppState::InGame).with_system(cleanup));
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct Enemy {
     pub velocity: Vec3,
+    pub hp: i32,
+    pub bonus_score: i32,
+    pub is_boss_enemy: bool,
+}
+
+impl Default for Enemy {
+    fn default() -> Self {
+        Self {
+            velocity: Vec3::new(0.0, 0.0, 0.0),
+            hp: 1,
+            bonus_score: 100,
+            is_boss_enemy: false,
+        }
+    }
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {

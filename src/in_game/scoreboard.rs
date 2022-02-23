@@ -73,8 +73,8 @@ fn setup_score_area(commands: &mut Commands, asset_server: &mut AssetServer) {
         score_area_translation,
         score_area_width,
     ));
-    score_board_entities.append(&mut spawn_score_texts(commands, &asset_server));
-    score_board_entities.append(&mut spawn_stock_texts(commands, &asset_server));
+    score_board_entities.append(&mut spawn_score_texts(commands, asset_server));
+    score_board_entities.append(&mut spawn_stock_texts(commands, asset_server));
 
     commands.insert_resource(ScoreBoardEntities {
         entities: score_board_entities,

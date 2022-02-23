@@ -15,13 +15,14 @@ impl Plugin for DestroyEnemyPlugin {
 }
 
 fn destroy_enemy_system(
+    mut state: ResMut<State<AppState>>,
     mut commands: Commands,
     player_bullet_query: Query<(Entity, &PlayerBullet, &Transform)>,
-    enemy_query: Query<(Entity, &Enemy, &Transform)>,
+    mut enemy_query: Query<(Entity, &mut Enemy, &Transform)>,
     mut score: ResMut<Score>,
 ) {
     for (player_bullet_entity, _, player_bullet_transform) in player_bullet_query.iter() {
-        for (enemy_entity, _, enemy_transform) in enemy_query.iter() {
+        for (enemy_entity, mut enemy, enemy_transform) in enemy_query.iter_mut() {
             let collision = collide(
                 player_bullet_transform.translation,
                 player_bullet_transform.scale.truncate(),
@@ -30,9 +31,15 @@ fn destroy_enemy_system(
             );
 
             if collision.is_some() {
-                commands.entity(enemy_entity).despawn();
+                enemy.hp -= 1;
                 commands.entity(player_bullet_entity).despawn();
-                score.add_score(100);
+                if enemy.hp <= 0 {
+                    commands.entity(enemy_entity).despawn();
+                    score.add_score(enemy.bonus_score as u128);
+                    if enemy.is_boss_enemy {
+                        state.set(AppState::Ending).unwrap();
+                    }
+                }
                 break;
             }
         }

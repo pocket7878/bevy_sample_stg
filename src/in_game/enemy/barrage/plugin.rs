@@ -1,8 +1,8 @@
 use super::bullet::Bullet;
+use super::BarrageStarter;
 use crate::app_state::AppState;
 use crate::in_game::enemy::barrage::bullet::BulletType;
-use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunner;
-use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunnerData;
+
 use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
 use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
@@ -12,7 +12,9 @@ use crate::in_game::play_area::PlayAreaDescriptor;
 use crate::in_game::player::Player;
 use bevy::prelude::*;
 use bevy_bulletml::BulletMLServer;
-use bevy_bulletml::Runner;
+
+use std::fs;
+use std::path::PathBuf;
 
 pub struct EnemyBarragePlugin;
 
@@ -67,24 +69,12 @@ fn start_barrage_system(
     mut commands: Commands,
 ) {
     for (transform, life_count, barrage_conf) in query.iter() {
-        if life_count.count == barrage_conf.start_life_count {
-            let bml = bulletml_server.get(&barrage_conf.barrage_type);
-            if let Some(bml) = bml {
-                commands
-                    .spawn()
-                    .insert(Bullet {
-                        vanished: true,
-                        ..Default::default()
-                    })
-                    .insert(Transform {
-                        translation: transform.translation,
-                        ..Default::default()
-                    })
-                    .insert(BulletType::WithRunner {
-                        data: BulletMLRunnerData::default(),
-                        runner: Runner::new(BulletMLRunner, bml.clone()),
-                    });
-            }
+        if let Some(barrage_type_name) =
+            barrage_conf.get_barrage_type_for_life_count(life_count.count)
+        {
+            commands
+                .start_barrage(transform, &bulletml_server, &barrage_type_name)
+                .unwrap();
         }
     }
 }
@@ -151,18 +141,29 @@ fn despawn_bullet_system(
  */
 fn build_bulletml_server() -> BulletMLServer {
     let mut bulletml_server = BulletMLServer::new();
-    bulletml_server
-        .load_file("circle", "data/barrage/circle.xml")
-        .unwrap();
-    bulletml_server
-        .load_file("aim_triple", "data/barrage/aim_triple.xml")
-        .unwrap();
-    bulletml_server
-        .load_file("none", "data/barrage/none.xml")
-        .unwrap();
-    bulletml_server
-        .load_file("triple", "data/barrage/triple.xml")
-        .unwrap();
+    let barrage_dir_entries = fs::read_dir("data/barrage").unwrap();
+    let bulletml_file_paths: Vec<PathBuf> = barrage_dir_entries
+        .filter_map(|e| {
+            let ent = e.unwrap();
+            if !is_bulletml_file_entry(&ent) {
+                None
+            } else {
+                Some(ent.path())
+            }
+        })
+        .collect();
+
+    for p in bulletml_file_paths {
+        // Use filestem as a key name.
+        let key = p.file_stem().unwrap().to_str().unwrap().to_string();
+        bulletml_server.load_file(&key, p).unwrap();
+    }
 
     bulletml_server
+}
+
+fn is_bulletml_file_entry(entry: &fs::DirEntry) -> bool {
+    let file_type = entry.file_type().unwrap();
+    // Assume all XML files are BulletML file.
+    file_type.is_file() && entry.file_name().to_str().unwrap().ends_with(".xml")
 }

@@ -3,4 +3,5 @@ pub enum AppState {
     Menu,
     InGame,
     GameOver,
+    Ending,
 }

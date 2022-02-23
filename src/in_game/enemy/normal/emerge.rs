@@ -1,8 +1,7 @@
+use super::movement::MovePattern;
 use crate::app_state::AppState;
 use crate::in_game::enemy::assets_holder::EnemyAssetsHolder;
 use crate::in_game::enemy::barrage::configuration::BarrageConfiguration;
-use crate::in_game::enemy::movement::move_pattern::MovePattern;
-use crate::in_game::enemy::system_label::EnemySystemLabel;
 use crate::in_game::enemy::Enemy;
 use crate::in_game::game_frame::GameFrame;
 use crate::in_game::life_count::LifeCount;
@@ -16,9 +15,9 @@ use std::path;
 /*
  * Plugin
  */
-pub struct EnemyEmergePlugin;
+pub struct NormalEnemyEmergePlugin;
 
-impl Plugin for EnemyEmergePlugin {
+impl Plugin for NormalEnemyEmergePlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(AppState::InGame).with_system(setup))
             .add_system_set(
@@ -50,6 +49,16 @@ struct Emerge {
     move_pattern: MovePattern,
     barrage_pattern: String,
     barrage_start_life_count: i128,
+}
+
+impl Emerge {
+    fn build_barrage_configuration(&self) -> BarrageConfiguration {
+        let mut barrage_configuration = BarrageConfiguration::new();
+        barrage_configuration
+            .insert_barrage_type(self.barrage_start_life_count, &self.barrage_pattern);
+
+        barrage_configuration
+    }
 }
 
 struct EnemyEmerge {
@@ -128,10 +137,7 @@ impl EnemyEmerge {
                     })
                     .insert(Enemy::default())
                     .insert(LifeCount::default())
-                    .insert(BarrageConfiguration {
-                        barrage_type: emerge.barrage_pattern.clone(),
-                        start_life_count: emerge.barrage_start_life_count,
-                    })
+                    .insert(emerge.build_barrage_configuration())
                     .insert(emerge.move_pattern.clone());
             }
         }

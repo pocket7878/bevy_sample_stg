@@ -32,13 +32,14 @@ fn hit_enemy_bullet_system(
     enemy_bullet_query: Query<&Transform, With<EnemyBullet>>,
     mut player_query: Query<(&Transform, &mut Player, &mut Handle<Image>)>,
 ) {
+    let player_hit_area_size = Vec2::new(2., 2.);
     let (player_transform, mut player, mut sprite_handle) = player_query.single_mut();
     match player.state {
         PlayerState::Normal => {
             for enemy_bullet_transform in enemy_bullet_query.iter() {
                 let collision = collide(
                     player_transform.translation,
-                    player_transform.scale.truncate(),
+                    player_hit_area_size,
                     enemy_bullet_transform.translation,
                     enemy_bullet_transform.scale.truncate(),
                 );
@@ -59,7 +60,7 @@ fn hit_enemy_bullet_system(
         }
         PlayerState::DamegedInvincible { .. } => {
             // 被弾後の無敵時間中なので、被弾しない
-            return;
+            
         }
     }
 }
