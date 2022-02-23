@@ -42,7 +42,6 @@ fn cleanup(mut commands: Commands) {
 struct Emerge {
     initial_position: Vec3,
     move_pattern: MovePattern,
-    barrage_configuration: BarrageConfiguration,
 }
 
 impl Emerge {
@@ -50,13 +49,7 @@ impl Emerge {
         Self {
             initial_position,
             move_pattern,
-            barrage_configuration: BarrageConfiguration::new(),
         }
-    }
-
-    fn set_barrage_pattern_for_life_count(&mut self, life_count: i128, barrage_pattern: &str) {
-        self.barrage_configuration
-            .insert_barrage_type(life_count, barrage_pattern);
     }
 }
 
@@ -67,11 +60,7 @@ struct EnemyEmerge {
 impl EnemyEmerge {
     fn new() -> Self {
         let mut emerge_map = HashMap::new();
-        let mut boss1_emerge = Emerge::new(Vec3::new(0.0, -999.9, 0.0), MovePattern::Boss1);
-        boss1_emerge.set_barrage_pattern_for_life_count(120, "boss1_first_wave");
-        boss1_emerge.set_barrage_pattern_for_life_count(565, "boss1_second_wave");
-        boss1_emerge.set_barrage_pattern_for_life_count(1065, "boss1_first_wave");
-        boss1_emerge.set_barrage_pattern_for_life_count(1570, "boss1_second_wave");
+        let boss1_emerge = Emerge::new(Vec3::new(0.0, -999.9, 0.0), MovePattern::Boss1);
         emerge_map.insert(500i128, vec![boss1_emerge]);
         EnemyEmerge { emerge_map }
     }
@@ -103,7 +92,6 @@ impl EnemyEmerge {
                     })
                     .insert(Enemy::default())
                     .insert(LifeCount::default())
-                    .insert(emerge.barrage_configuration.clone())
                     .insert(emerge.move_pattern.clone());
             }
         }

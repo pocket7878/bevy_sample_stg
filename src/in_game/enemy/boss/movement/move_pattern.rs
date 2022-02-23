@@ -7,15 +7,20 @@ pub enum MovePattern {
     Boss1,
 }
 
+pub enum BossAction {
+    MoveTo(Vec3),
+    Stay,
+    StartBarrrage(String),
+}
 // ボスの新しい座標を計算する、更新が必要であればSome, 現在の座標のままでよければNoneを返す
-pub trait TranslationCalculater {
-    fn calc_new_translation(&self, life_count: &LifeCount) -> Option<Vec3>;
+pub trait ActionCalculater {
+    fn action_for_life_count(&self, life_count: &LifeCount) -> BossAction;
 }
 
 impl MovePattern {
-    pub fn translation_calculater(&self) -> Box<dyn TranslationCalculater> {
+    pub fn action_calculater(&self) -> Box<dyn ActionCalculater> {
         match self {
-            Self::Boss1 => Box::new(boss1::Boss1TranslationCalculater),
+            Self::Boss1 => Box::new(boss1::Boss1ActionCalculater),
         }
     }
 }

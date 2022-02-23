@@ -1,4 +1,5 @@
 use super::bullet::Bullet;
+use super::BarrageStarter;
 use crate::app_state::AppState;
 use crate::in_game::enemy::barrage::bullet::BulletType;
 use crate::in_game::enemy::barrage::bulletml_runner::BulletMLRunner;
@@ -72,25 +73,9 @@ fn start_barrage_system(
         if let Some(barrage_type_name) =
             barrage_conf.get_barrage_type_for_life_count(life_count.count)
         {
-            let bml = bulletml_server.get(&barrage_type_name);
-            if let Some(bml) = bml {
-                commands
-                    .spawn()
-                    .insert(Bullet {
-                        vanished: true,
-                        ..Default::default()
-                    })
-                    .insert(Transform {
-                        translation: transform.translation,
-                        ..Default::default()
-                    })
-                    .insert(BulletType::WithRunner {
-                        data: BulletMLRunnerData::default(),
-                        runner: Runner::new(BulletMLRunner, bml.clone()),
-                    });
-            } else {
-                println!("Failed to load barrage: {}", barrage_type_name);
-            }
+            commands
+                .start_barrage(transform, &bulletml_server, &barrage_type_name)
+                .unwrap();
         }
     }
 }
