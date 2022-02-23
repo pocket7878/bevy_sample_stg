@@ -20,7 +20,6 @@ impl BarrageConfiguration {
 
     pub fn get_barrage_type_for_life_count(&self, life_count: i128) -> Option<String> {
         self.life_count_to_barrage_type
-            .get(&life_count)
-            .map(|s| s.clone())
+            .get(&life_count).cloned()
     }
 }

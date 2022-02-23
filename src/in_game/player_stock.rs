@@ -8,7 +8,7 @@ use crate::in_game::player::PlayerState;
 use crate::in_game::scoreboard::Score;
 use crate::FPS;
 use bevy::prelude::*;
-use bevy::sprite::collide_aabb::collide;
+
 
 const DAMAGED_INVINCIBLE_FRAME: i32 = (FPS * 2.) as i32;
 
@@ -26,11 +26,11 @@ impl Plugin for PlayerStockPlugin {
 }
 
 fn hit_enemy_bullet_system(
-    mut state: ResMut<State<AppState>>,
-    player_assets: Res<PlayerAssets>,
-    mut score: ResMut<Score>,
-    enemy_bullet_query: Query<&Transform, With<EnemyBullet>>,
-    mut player_query: Query<(&Transform, &mut Player, &mut Handle<Image>)>,
+    _state: ResMut<State<AppState>>,
+    _player_assets: Res<PlayerAssets>,
+    _score: ResMut<Score>,
+    _enemy_bullet_query: Query<&Transform, With<EnemyBullet>>,
+    _player_query: Query<(&Transform, &mut Player, &mut Handle<Image>)>,
 ) {
     /*
     let (player_transform, mut player, mut sprite_handle) = player_query.single_mut();

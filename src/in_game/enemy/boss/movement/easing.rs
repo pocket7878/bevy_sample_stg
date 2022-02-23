@@ -28,8 +28,8 @@ fn easing_ease_in_out_interpolation(t: f32, b: f32, c: f32, d: f32) -> f32 {
     if tt < 1. {
         return c / 2.0 * tt * tt + b;
     }
-    tt = tt - 1.;
-    return -c / 2.0 * (tt * (tt - 2.) - 1.) + b;
+    tt -= 1.;
+    -c / 2.0 * (tt * (tt - 2.) - 1.) + b
 }
 
 fn easing_linear_interpolation(t: f32, b: f32, c: f32, d: f32) -> f32 {
