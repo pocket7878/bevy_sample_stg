@@ -2,4 +2,6 @@
 
 RustのBevyゲームエンジンの学習のために作っているシューティングゲーム
 
-![stg](https://user-images.githubusercontent.com/236528/154835053-be674f08-6cf4-4842-85fb-6b679d511d80.gif)
+![stg](https://user-images.githubusercontent.com/236528/155275383-5e699520-3498-4353-b051-e6b343afcbc5.gif)
+
+
