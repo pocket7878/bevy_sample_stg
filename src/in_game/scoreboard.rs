@@ -146,7 +146,7 @@ fn spawn_score_texts(commands: &mut Commands, asset_server: &AssetServer) -> Vec
                 },
                 style: Style {
                     position_type: PositionType::Absolute,
-                    position: Rect {
+                    position: UiRect {
                         top: Val::Px(50.),
                         left: Val::Px(WINDOW_WIDTH / 3. * 2. + 50.),
                         ..Default::default()
@@ -174,7 +174,7 @@ fn spawn_score_texts(commands: &mut Commands, asset_server: &AssetServer) -> Vec
                 },
                 style: Style {
                     position_type: PositionType::Absolute,
-                    position: Rect {
+                    position: UiRect {
                         top: Val::Px(80.),
                         left: Val::Px(WINDOW_WIDTH / 3. * 2. + 50.),
                         ..Default::default()
@@ -209,7 +209,7 @@ fn spawn_stock_texts(commands: &mut Commands, asset_server: &AssetServer) -> Vec
                 },
                 style: Style {
                     position_type: PositionType::Absolute,
-                    position: Rect {
+                    position: UiRect {
                         top: Val::Px(130.),
                         left: Val::Px(WINDOW_WIDTH / 3. * 2. + 50.),
                         ..Default::default()
@@ -237,7 +237,7 @@ fn spawn_stock_texts(commands: &mut Commands, asset_server: &AssetServer) -> Vec
                 },
                 style: Style {
                     position_type: PositionType::Absolute,
-                    position: Rect {
+                    position: UiRect {
                         top: Val::Px(154.),
                         left: Val::Px(WINDOW_WIDTH / 3. * 2. + 50.),
                         ..Default::default()

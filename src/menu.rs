@@ -12,7 +12,6 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_enter(AppState::Menu)
-                .with_system(setup_camera)
                 .with_system(setup_title)
                 .with_system(setup_menu),
         )
@@ -29,10 +28,6 @@ struct MenuData {
     button_entity: Entity,
 }
 
-fn setup_camera(mut commands: Commands) {
-    commands.spawn_bundle(UiCameraBundle::default());
-}
-
 fn setup_title(mut commands: Commands, asset_server: Res<AssetServer>) {
     let title_entity = commands
         .spawn_bundle(NodeBundle {
@@ -41,7 +36,7 @@ fn setup_title(mut commands: Commands, asset_server: Res<AssetServer>) {
                 flex_direction: FlexDirection::ColumnReverse,
                 justify_content: JustifyContent::Center,
                 position_type: PositionType::Absolute,
-                position: Rect {
+                position: UiRect {
                     top: Val::Px(0.),
                     left: Val::Px(0.),
                     ..Default::default()
@@ -99,7 +94,7 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             style: Style {
                 size: Size::new(Val::Px(150.0), Val::Px(65.0)),
                 // center button
-                margin: Rect::all(Val::Auto),
+                margin: UiRect::all(Val::Auto),
                 // horizontally center child text
                 justify_content: JustifyContent::Center,
                 // vertically center child text
@@ -111,14 +106,13 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .with_children(|parent| {
             parent.spawn_bundle(TextBundle {
-                text: Text::with_section(
+                text: Text::from_section(
                     "Play",
                     TextStyle {
                         font: asset_server.load("fonts/x8y12pxTheStrongGamer.ttf"),
                         font_size: 40.0,
                         color: Color::rgb(0.9, 0.9, 0.9),
                     },
-                    Default::default(),
                 ),
                 ..Default::default()
             });

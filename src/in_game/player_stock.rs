@@ -60,7 +60,6 @@ fn hit_enemy_bullet_system(
         }
         PlayerState::DamegedInvincible { .. } => {
             // 被弾後の無敵時間中なので、被弾しない
-            
         }
     }
 }
